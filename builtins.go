@@ -11,7 +11,7 @@ type alwaysFail struct {
 	err CmdCrashError
 }
 
-func (o alwaysFail) Run(args []string, session *Session) CmdCrashError {
+func (o alwaysFail) Run([]string, *Session) CmdCrashError {
 	return o.err
 }
 
@@ -21,7 +21,7 @@ func (Echo) Run(args []string, session *Session) CmdCrashError {
 	if len(args) < 2 {
 		return WrongArgCountError{min: 1}
 	}
-	io.WriteString(session.Out, strings.Join(args[1:], " ")+Newline)
+	SendNl(strings.Join(args[1:], " "), session.Out)
 	return nil
 }
 
@@ -31,7 +31,11 @@ func (Cat) Run(args []string, session *Session) CmdCrashError {
 	if len(args) != 2 {
 		return WrongArgCountError{min: 1, max: 1}
 	}
-	file, err := os.Open(args[1])
+	path, cErr := session.WorkingDir.GetRelativePath(args[1])
+	if cErr != nil {
+		return cErr
+	}
+	file, err := os.Open(path.General)
 	if err != nil {
 		return GeneralError{Message: err.Error()}
 	}
@@ -48,12 +52,12 @@ func (Cd) Run(args []string, session *Session) CmdCrashError {
 	if len(args) != 2 {
 		return WrongArgCountError{min: 1, max: 1}
 	}
-	return session.WorkingDir.ChDir(args[1])
+	return session.WorkingDir.ChangeDir(args[1])
 }
 
 type Ls struct{}
 
-func (Ls) Run(args []string, session *Session) CmdCrashError {
+func (Ls) Run(_ []string, session *Session) CmdCrashError {
 	files, err := session.WorkingDir.ListDir(false)
 	if err != nil {
 		return GeneralError{Message: err.Error()}
@@ -63,27 +67,27 @@ func (Ls) Run(args []string, session *Session) CmdCrashError {
 	for _, file := range files {
 		result = append(result, file.Name())
 	}
-	session.Out.Write([]byte(strings.Join(result, " ") + Newline))
+	SendNl(strings.Join(result, " "), session.Out)
 	return nil
 }
 
 type Exit struct{}
 
-func (Exit) Run(args []string, session *Session) CmdCrashError {
+func (Exit) Run(_ []string, session *Session) CmdCrashError {
 	session.Close()
 	return nil
 }
 
 type Pwd struct{}
 
-func (Pwd) Run(args []string, session *Session) CmdCrashError {
-	session.Out.Write([]byte(session.WorkingDir.Visible + Newline))
+func (Pwd) Run(_ []string, session *Session) CmdCrashError {
+	SendNl(session.WorkingDir.Visible, session.Out)
 	return nil
 }
 
 type Sleep struct{}
 
-func (Sleep) Run(args []string, session *Session) CmdCrashError {
+func (Sleep) Run(args []string, _ *Session) CmdCrashError {
 	if len(args) != 2 {
 		return WrongArgCountError{min: 1, max: 1}
 	}
@@ -97,7 +101,10 @@ func (Sleep) Run(args []string, session *Session) CmdCrashError {
 
 type Clear struct{}
 
-func (Clear) Run(args []string, session *Session) CmdCrashError {
-	session.ClearScreen()
+func (Clear) Run(_ []string, session *Session) CmdCrashError {
+	err := session.ClearScreen()
+	if err != nil {
+		return GeneralError{Message: err.Error()}
+	}
 	return nil
 }

@@ -29,12 +29,12 @@ func sendCmdPrefix(session *Session) {
 	}
 	hostname, _ := os.Hostname()
 	prefix := fmt.Sprintf(CmdPrefix, username, hostname, session.WorkingDir.Formatted())
-	session.Out.Write([]byte(prefix))
+	Send(prefix, session.Out)
 }
 
 func delLastChars(writer io.Writer, count int) {
 	for i := 0; i < count; i++ {
-		writer.Write([]byte{8, 32, 8})
+		SendRaw([]byte{8, 32, 8}, writer)
 	}
 }
 
@@ -45,7 +45,10 @@ func ReaderInput(input InOutErr) {
 	for session.Open {
 		n, err := session.In.Read(data)
 		if err == io.EOF {
-			session.Out.Close()
+			err := session.Out.Close()
+			if err != nil {
+				fmt.Println("Error closing:", err.Error())
+			}
 			break
 		}
 		if err != nil {
@@ -59,11 +62,11 @@ func ReaderInput(input InOutErr) {
 			case 65:
 				delLastChars(session.Out, len(session.GetHistoryEntry()))
 				session.HistoryPast()
-				session.Out.Write([]byte(session.GetHistoryEntry()))
+				Send(session.GetHistoryEntry(), session.Out)
 			case 66:
 				delLastChars(session.Out, len(session.GetHistoryEntry()))
 				session.HistoryPresent()
-				session.Out.Write([]byte(session.GetHistoryEntry()))
+				Send(session.GetHistoryEntry(), session.Out)
 			case 67: // Right
 			case 68: // Left
 			}
@@ -72,28 +75,28 @@ func ReaderInput(input InOutErr) {
 				entry := session.GetHistoryEntry()
 				session.setHistoryEntry(entry[:len(entry)-1])
 				if raw[0] == 8 && !session.Echo {
-					session.Out.Write([]byte{32, 8})
+					SendRaw([]byte{32, 8}, session.Out)
 				} else {
 					delLastChars(session.Out, 1)
 				}
 			} else if raw[0] == 8 {
-				session.Out.Write([]byte{32})
+				SendRaw([]byte{32}, session.Out)
 			}
 		} else if len(raw) == 1 && raw[0] == 9 {
 			// Tab
 		} else {
 			if session.Echo {
-				session.Out.Write(raw)
+				SendRaw(raw, session.Out)
 			}
 			session.setHistoryEntry(session.GetHistoryEntry() + text)
 		}
 		if !strings.Contains(session.GetHistoryEntry(), "\n") && strings.Contains(session.GetHistoryEntry(), "\r") {
-			session.Out.Write([]byte{10})
+			SendRaw([]byte{10}, session.Out)
 		}
 		regex := regexp.MustCompile(`\r\n|\r\x00|\r`)
 		session.setHistoryEntry(regex.ReplaceAllString(session.GetHistoryEntry(), "\n"))
 		if strings.HasSuffix(session.GetHistoryEntry(), "\\\n") {
-			session.Out.Write([]byte("> "))
+			Send(" >", session.Out)
 		} else if strings.HasSuffix(session.GetHistoryEntry(), "\n") {
 			MultiLineInput(session.GetHistoryEntry(), session)
 			session.HistoryPos = -1
@@ -146,10 +149,12 @@ func singleCommandInput(cmd string, session *Session) int {
 		command = Sleep{}
 	} else if args[0] == "clear" {
 		command = Clear{}
+	} else if args[0] == "run" {
+		command = Run{}
 	}
 	err := command.Run(args, session)
 	if err != nil {
-		io.WriteString(session.Err, strconv.Itoa(err.Code())+": "+err.Error()+Newline)
+		SendNl(strconv.Itoa(err.Code())+": "+err.Error(), session.Err)
 		return err.Code()
 	}
 	return 0

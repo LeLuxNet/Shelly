@@ -26,14 +26,30 @@ func generateVisible(general string) string {
 	return "/" + strings.Replace(general, ":", "", 1)
 }
 
-func (p *Path) ChDir(relative string) CmdCrashError {
-	target := path.Join(p.General, relative)
-	if _, err := os.Stat(target); os.IsNotExist(err) {
-		return PathError{NotExists}
+func (p *Path) ChangeDir(relative string) CmdCrashError {
+	target, err := getRelativePathString(p.General, relative)
+	if err != nil {
+		return err
 	}
 	p.General = target
 	p.regenerateVisible()
 	return nil
+}
+
+func (p Path) GetRelativePath(relative string) (*Path, CmdCrashError) {
+	target, err := getRelativePathString(p.General, relative)
+	if err != nil {
+		return nil, err
+	}
+	return NewPath(target), nil
+}
+
+func getRelativePathString(base string, relative string) (string, CmdCrashError) {
+	target := path.Join(base, relative)
+	if _, err := os.Stat(target); os.IsNotExist(err) {
+		return "", PathError{NotExists}
+	}
+	return target, nil
 }
 
 func (p *Path) CurrentDir() string {
