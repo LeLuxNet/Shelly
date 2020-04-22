@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 type alwaysFail struct {
@@ -53,15 +54,16 @@ func (Cd) Run(args []string, session *Session) CmdCrashError {
 type Ls struct{}
 
 func (Ls) Run(args []string, session *Session) CmdCrashError {
-	dir, err := os.Open(session.WorkingDir.General)
+	files, err := session.WorkingDir.ListDir(false)
 	if err != nil {
 		return GeneralError{Message: err.Error()}
 	}
-	names, err := dir.Readdirnames(0)
-	if err != nil {
-		return GeneralError{Message: err.Error()}
+
+	var result []string
+	for _, file := range files {
+		result = append(result, file.Name())
 	}
-	session.Out.Write([]byte(strings.Join(names, " ") + Newline))
+	session.Out.Write([]byte(strings.Join(result, " ") + Newline))
 	return nil
 }
 
@@ -69,5 +71,33 @@ type Exit struct{}
 
 func (Exit) Run(args []string, session *Session) CmdCrashError {
 	session.Close()
+	return nil
+}
+
+type Pwd struct{}
+
+func (Pwd) Run(args []string, session *Session) CmdCrashError {
+	session.Out.Write([]byte(session.WorkingDir.Visible + Newline))
+	return nil
+}
+
+type Sleep struct{}
+
+func (Sleep) Run(args []string, session *Session) CmdCrashError {
+	if len(args) != 2 {
+		return WrongArgCountError{min: 1, max: 1}
+	}
+	duration, err := ParseTime(args[1])
+	if err != nil {
+		return err
+	}
+	time.Sleep(duration)
+	return nil
+}
+
+type Clear struct{}
+
+func (Clear) Run(args []string, session *Session) CmdCrashError {
+	session.ClearScreen()
 	return nil
 }

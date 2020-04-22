@@ -55,7 +55,7 @@ func (e WrongArgCountError) Error() string {
 }
 
 const (
-	NotExists = iota
+	NotExists = iota + 1
 )
 
 type PathError struct {
@@ -72,4 +72,24 @@ func (e PathError) Error() string {
 		return "File or dir does not exist"
 	}
 	return "Unknown Path Error"
+}
+
+const (
+	NotInt = iota + 1
+)
+
+type ParseError struct {
+	Id int
+}
+
+func (ParseError) Code() int {
+	return 5
+}
+
+func (e ParseError) Error() string {
+	switch e.Id {
+	case NotInt:
+		return "Argument has to be an int"
+	}
+	return "Parse Error"
 }

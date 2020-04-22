@@ -1,6 +1,10 @@
 package main
 
-import "io"
+import (
+	"io"
+	"os/exec"
+	"runtime"
+)
 
 type Cmd interface {
 	Run(args []string, session *Session) CmdCrashError
@@ -18,4 +22,15 @@ func NewInOutErr(in io.Reader, out io.WriteCloser, err io.Writer, echo bool) InO
 		return InOutErr{In: in, Out: out, Err: out, Echo: echo}
 	}
 	return InOutErr{In: in, Out: out, Err: err, Echo: echo}
+}
+
+func (io InOutErr) ClearScreen() {
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", "cls")
+	} else {
+		cmd = exec.Command("clear")
+	}
+	cmd.Stdout = io.Out
+	cmd.Run()
 }

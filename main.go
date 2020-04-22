@@ -1,14 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 )
 
 const (
 	host = "localhost"
-	port = "3300"
 )
 
 func telnet(port string) {
@@ -37,6 +38,13 @@ func handleRequest(conn net.Conn) {
 }
 
 func main() {
-	// telnet(port)
-	localInput()
+	telnetPort := flag.Int("telnet", 0, "Open a telnet/tcp port to connect to shelly")
+	flag.Parse()
+
+	if *telnetPort != 0 {
+		telnet(strconv.Itoa(*telnetPort))
+		return
+	} else {
+		localInput()
+	}
 }

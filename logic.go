@@ -3,20 +3,32 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
+	"os/user"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 )
 
 const (
-	CmdPrefix = "%s $ "
+	CmdPrefix = "%s@%s:%s$ "
 	Newline   = "\r\n"
 )
 
 var history []string
 
 func sendCmdPrefix(session *Session) {
-	prefix := fmt.Sprintf(CmdPrefix, session.WorkingDir.CurrentDir())
+	cUser, err := user.Current()
+	username := ""
+	if err == nil {
+		username = cUser.Username
+		if runtime.GOOS == "windows" {
+			username = strings.Split(username, "\\")[1]
+		}
+	}
+	hostname, _ := os.Hostname()
+	prefix := fmt.Sprintf(CmdPrefix, username, hostname, session.WorkingDir.Formatted())
 	session.Out.Write([]byte(prefix))
 }
 
@@ -57,35 +69,37 @@ func ReaderInput(input InOutErr) {
 			}
 		} else if len(raw) == 1 && (raw[0] == 8 || raw[0] == 127) {
 			if len(session.GetHistoryEntry()) > 0 {
-				session.inputBuffer = session.inputBuffer[:len(session.inputBuffer)-1]
+				entry := session.GetHistoryEntry()
+				session.setHistoryEntry(entry[:len(entry)-1])
 				if raw[0] == 8 && !session.Echo {
 					session.Out.Write([]byte{32, 8})
 				} else {
 					delLastChars(session.Out, 1)
 				}
-			} else {
+			} else if raw[0] == 8 {
 				session.Out.Write([]byte{32})
 			}
+		} else if len(raw) == 1 && raw[0] == 9 {
+			// Tab
 		} else {
 			if session.Echo {
 				session.Out.Write(raw)
 			}
-			session.inputBuffer += text
+			session.setHistoryEntry(session.GetHistoryEntry() + text)
 		}
-		if !strings.Contains(text, "\n") && strings.Contains(text, "\r") {
+		if !strings.Contains(session.GetHistoryEntry(), "\n") && strings.Contains(session.GetHistoryEntry(), "\r") {
 			session.Out.Write([]byte{10})
 		}
 		regex := regexp.MustCompile(`\r\n|\r\x00|\r`)
-		session.inputBuffer = regex.ReplaceAllString(session.inputBuffer, "\n")
-		if strings.HasSuffix(session.inputBuffer, "\\\n") {
+		session.setHistoryEntry(regex.ReplaceAllString(session.GetHistoryEntry(), "\n"))
+		if strings.HasSuffix(session.GetHistoryEntry(), "\\\n") {
 			session.Out.Write([]byte("> "))
-		} else if strings.HasSuffix(session.inputBuffer, "\n") {
+		} else if strings.HasSuffix(session.GetHistoryEntry(), "\n") {
 			MultiLineInput(session.GetHistoryEntry(), session)
 			session.HistoryPos = -1
 			session.inputBuffer = ""
 			sendCmdPrefix(session)
 		}
-		// fmt.Println("Buffer", session.inputBuffer)
 	}
 }
 
@@ -124,8 +138,14 @@ func singleCommandInput(cmd string, session *Session) int {
 		command = Cd{}
 	} else if args[0] == "ls" {
 		command = Ls{}
-	} else if args[0] == "exit" {
+	} else if args[0] == "exit" || args[0] == "quit" {
 		command = Exit{}
+	} else if args[0] == "pwd" {
+		command = Pwd{}
+	} else if args[0] == "sleep" {
+		command = Sleep{}
+	} else if args[0] == "clear" {
+		command = Clear{}
 	}
 	err := command.Run(args, session)
 	if err != nil {

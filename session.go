@@ -49,3 +49,11 @@ func (s *Session) GetHistoryEntry() string {
 		return history[s.HistoryPos]
 	}
 }
+
+func (s *Session) setHistoryEntry(text string) {
+	if s.HistoryPos == -1 {
+		s.inputBuffer = text
+	} else {
+		history[s.HistoryPos] = text
+	}
+}
