@@ -46,8 +46,11 @@ func (p Path) GetRelativePath(relative string) (*Path, CmdCrashError) {
 
 func getRelativePathString(base string, relative string) (string, CmdCrashError) {
 	target := path.Join(base, relative)
-	if _, err := os.Stat(target); os.IsNotExist(err) {
+	_, err := os.Stat(target)
+	if os.IsNotExist(err) {
 		return "", PathError{NotExists}
+	} else if err != nil {
+		return "", GeneralError{Message: err.Error()}
 	}
 	return target, nil
 }
