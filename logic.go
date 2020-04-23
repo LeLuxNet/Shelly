@@ -28,7 +28,7 @@ func sendCmdPrefix(session *Session) {
 		}
 	}
 	hostname, _ := os.Hostname()
-	prefix := fmt.Sprintf(CmdPrefix, username, hostname, session.WorkingDir.Formatted())
+	prefix := fmt.Sprintf(CmdPrefix, Color(username, COLOR_F_GREEN), Color(hostname, COLOR_FB_BLUE), session.WorkingDir.Formatted())
 	Send(prefix, session.Out)
 }
 

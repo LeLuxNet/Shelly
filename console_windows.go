@@ -4,35 +4,43 @@ package main
 
 import (
 	"fmt"
-	"golang.org/x/sys/windows"
 	"os"
+	"syscall"
+	"unsafe"
 )
 
 func localInput() {
-	handle := windows.Handle(os.Stdin.Fd())
+	inHandle := syscall.Handle(os.Stdin.Fd())
+	kernel32DLL := syscall.NewLazyDLL("kernel32.dll")
+	getConsoleModeProc := kernel32DLL.NewProc("GetConsoleMode")
+	setConsoleModeProc := kernel32DLL.NewProc("SetConsoleMode")
 
-	var old uint32 = 0
-	windows.GetConsoleMode(handle, &old)
+	var old uint64 = 0
+	_, _, err := getConsoleModeProc.Call(uintptr(inHandle), uintptr(unsafe.Pointer(&old)))
+	if isError(err) {
+		fmt.Println("Unable to get Windows Console mode: " + err.Error())
+		os.Exit(1)
+	}
 
-	var mode uint32 = 0
 	// https://docs.microsoft.com/en-us/windows/console/setconsolemode
-
-	// mode |= windows.ENABLE_ECHO_INPUT // Needs ENABLE_LINE_INPUT
-	// mode |= windows.ENABLE_PROCESSED_INPUT
-	// mode |= windows.ENABLE_LINE_INPUT
-	// mode |= windows.ENABLE_WINDOW_INPUT
-	// mode |= windows.ENABLE_MOUSE_INPUT
-	// mode |= windows.ENABLE_INSERT_MODE // Needs ENABLE_EXTENDED_FLAGS
-	// mode |= windows.ENABLE_QUICK_EDIT_MODE // Needs ENABLE_EXTENDED_FLAGS
-	// mode |= windows.ENABLE_EXTENDED_FLAGS
-	mode |= windows.ENABLE_VIRTUAL_TERMINAL_INPUT
-
-	if err := windows.SetConsoleMode(handle, mode); err != nil {
+	_, _, err = setConsoleModeProc.Call(uintptr(inHandle), 0x0200)
+	if isError(err) {
 		fmt.Println("Unable to set Windows Console mode: " + err.Error())
 		os.Exit(1)
 	}
 
-	defer windows.SetConsoleMode(handle, old)
+	defer setConsoleModeProc.Call(uintptr(inHandle), uintptr(old))
+
+	outHandle := syscall.Handle(os.Stdout.Fd())
+	_, _, err = setConsoleModeProc.Call(uintptr(outHandle), 0x0001|0x0002|0x0004)
+	if isError(err) {
+		fmt.Println("Unable to set Windows Console mode: " + err.Error())
+		os.Exit(1)
+	}
 
 	ReaderInput(NewInOutErr(os.Stdin, os.Stdout, os.Stderr, true))
+}
+
+func isError(err error) bool {
+	return err != nil && err.Error() != "The operation completed successfully."
 }
