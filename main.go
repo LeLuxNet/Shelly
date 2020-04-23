@@ -41,6 +41,8 @@ func main() {
 	telnetPort := flag.Int("telnet", 0, "Open a telnet/tcp port to connect to shelly")
 	flag.Parse()
 
+	initialize()
+
 	if *telnetPort != 0 {
 		telnet(strconv.Itoa(*telnetPort))
 		return

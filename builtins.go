@@ -7,14 +7,6 @@ import (
 	"time"
 )
 
-type alwaysFail struct {
-	err CmdCrashError
-}
-
-func (o alwaysFail) Run([]string, *Session) CmdCrashError {
-	return o.err
-}
-
 type Echo struct{}
 
 func (Echo) Run(args []string, session *Session) CmdCrashError {
@@ -107,4 +99,19 @@ func (Clear) Run(_ []string, session *Session) CmdCrashError {
 		return GeneralError{Message: err.Error()}
 	}
 	return nil
+}
+
+func registerBuiltins() {
+	Register("echo", Echo{})
+	Register("cat", Cat{})
+	Register("cd", Cd{})
+	Register("ls", Ls{})
+
+	Register("exit", Exit{})
+	Register("quit", Exit{})
+
+	Register("pwd", Pwd{})
+	Register("sleep", Sleep{})
+	Register("clear", Clear{})
+	Register("run", Run{})
 }

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	CmdPrefix = "%s@%s:%s$ "
+	CmdPrefix = "%s%s:%s$ "
 	Newline   = "\r\n"
 )
 
@@ -28,7 +28,7 @@ func sendCmdPrefix(session *Session) {
 		}
 	}
 	hostname, _ := os.Hostname()
-	prefix := fmt.Sprintf(CmdPrefix, Color(username, COLOR_F_GREEN), Color(hostname, COLOR_FB_BLUE), session.WorkingDir.Formatted())
+	prefix := fmt.Sprintf(CmdPrefix, Color(username, COLOR_F_GREEN), Color("@"+hostname, COLOR_F_GREEN), Color(session.WorkingDir.Formatted(), COLOR_FB_BLUE))
 	Send(prefix, session.Out)
 }
 
@@ -36,6 +36,11 @@ func delLastChars(writer io.Writer, count int) {
 	for i := 0; i < count; i++ {
 		SendRaw([]byte{8, 32, 8}, writer)
 	}
+}
+
+func initialize() {
+	registeredCmds = make(map[string]Cmd)
+	registerCmds()
 }
 
 func ReaderInput(input InOutErr) {
@@ -132,25 +137,9 @@ func singleLineInput(line string, session *Session) {
 func singleCommandInput(cmd string, session *Session) int {
 	regex := regexp.MustCompile(`\s+`)
 	args := regex.Split(strings.TrimSpace(cmd), -1)
-	var command Cmd = alwaysFail{err: NoCmd{}}
-	if args[0] == "echo" {
-		command = Echo{}
-	} else if args[0] == "cat" {
-		command = Cat{}
-	} else if args[0] == "cd" {
-		command = Cd{}
-	} else if args[0] == "ls" {
-		command = Ls{}
-	} else if args[0] == "exit" || args[0] == "quit" {
-		command = Exit{}
-	} else if args[0] == "pwd" {
-		command = Pwd{}
-	} else if args[0] == "sleep" {
-		command = Sleep{}
-	} else if args[0] == "clear" {
-		command = Clear{}
-	} else if args[0] == "run" {
-		command = Run{}
+	command := registeredCmds[args[0]]
+	if command == nil {
+		command = alwaysFail{err: NoCmd{}}
 	}
 	err := command.Run(args, session)
 	if err != nil {
@@ -158,4 +147,8 @@ func singleCommandInput(cmd string, session *Session) int {
 		return err.Code()
 	}
 	return 0
+}
+
+func registerCmds() {
+	registerBuiltins()
 }

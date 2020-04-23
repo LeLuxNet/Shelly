@@ -7,6 +7,14 @@ type CmdCrashError interface {
 	Code() int
 }
 
+type alwaysFail struct {
+	err CmdCrashError
+}
+
+func (o alwaysFail) Run([]string, *Session) CmdCrashError {
+	return o.err
+}
+
 type GeneralError struct {
 	Message string
 }
