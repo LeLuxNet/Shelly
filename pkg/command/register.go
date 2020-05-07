@@ -1,10 +1,6 @@
-package main
+package command
 
-type Cmd interface {
-	Run(args []string, session *Session) CmdCrashError
-}
-
-var registeredCmds map[string]Cmd
+var registeredCmds = make(map[string]Cmd)
 
 func Register(listen string, cmd Cmd) bool {
 	if _, ok := registeredCmds[listen]; ok {
@@ -12,4 +8,8 @@ func Register(listen string, cmd Cmd) bool {
 	}
 	registeredCmds[listen] = cmd
 	return true
+}
+
+func GetRegistered(listen string) Cmd {
+	return registeredCmds[listen]
 }

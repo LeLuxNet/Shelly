@@ -1,15 +1,17 @@
 // +build windows
 
-package main
+package console
 
 import (
 	"fmt"
+	"github.com/LeLuxNet/Shelly/internal/input"
+	"github.com/LeLuxNet/Shelly/pkg/models"
 	"os"
 	"syscall"
 	"unsafe"
 )
 
-func localInput() {
+func Local() {
 	inHandle := syscall.Handle(os.Stdin.Fd())
 	kernel32DLL := syscall.NewLazyDLL("kernel32.dll")
 	getConsoleModeProc := kernel32DLL.NewProc("GetConsoleMode")
@@ -38,7 +40,7 @@ func localInput() {
 		os.Exit(1)
 	}
 
-	ReaderInput(NewInOutErr(os.Stdin, os.Stdout, os.Stderr, true))
+	input.ReaderInput(models.NewSession(os.Stdin, os.Stdout, os.Stderr, true))
 }
 
 func isError(err error) bool {

@@ -1,6 +1,7 @@
-package main
+package path
 
 import (
+	"github.com/LeLuxNet/Shelly/pkg/errors"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -26,7 +27,7 @@ func generateVisible(general string) string {
 	return "/" + strings.Replace(general, ":", "", 1)
 }
 
-func (p *Path) ChangeDir(relative string) CmdCrashError {
+func (p *Path) ChangeDir(relative string) errors.CommandError {
 	target, err := getRelativePathString(p.General, relative)
 	if err != nil {
 		return err
@@ -36,7 +37,7 @@ func (p *Path) ChangeDir(relative string) CmdCrashError {
 	return nil
 }
 
-func (p Path) GetRelativePath(relative string) (*Path, CmdCrashError) {
+func (p Path) GetRelativePath(relative string) (*Path, errors.CommandError) {
 	target, err := getRelativePathString(p.General, relative)
 	if err != nil {
 		return nil, err
@@ -44,13 +45,13 @@ func (p Path) GetRelativePath(relative string) (*Path, CmdCrashError) {
 	return NewPath(target), nil
 }
 
-func getRelativePathString(base string, relative string) (string, CmdCrashError) {
+func getRelativePathString(base string, relative string) (string, errors.CommandError) {
 	target := path.Join(base, relative)
 	_, err := os.Stat(target)
 	if os.IsNotExist(err) {
 		return "", PathError{NotExists}
 	} else if err != nil {
-		return "", GeneralError{Message: err.Error()}
+		return "", errors.GeneralError{Message: err.Error()}
 	}
 	return target, nil
 }
@@ -73,10 +74,10 @@ func (p *Path) Formatted() string {
 	return formatted
 }
 
-func (p *Path) ListDir(showDotted bool) (list []os.FileInfo, error CmdCrashError) {
+func (p *Path) ListDir(showDotted bool) (list []os.FileInfo, error errors.CommandError) {
 	raw, err := ioutil.ReadDir(p.General)
 	if err != nil {
-		return nil, GeneralError{Message: err.Error()}
+		return nil, errors.GeneralError{Message: err.Error()}
 	}
 
 	var files []os.FileInfo

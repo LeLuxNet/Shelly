@@ -1,18 +1,18 @@
-package main
+package console
 
 import (
-	"flag"
 	"fmt"
+	"github.com/LeLuxNet/Shelly/internal/input"
+	"github.com/LeLuxNet/Shelly/pkg/models"
 	"net"
 	"os"
-	"strconv"
 )
 
 const (
 	host = "localhost"
 )
 
-func telnet(port string) {
+func Telnet(port string) {
 	listener, err := net.Listen("tcp", host+":"+port)
 	if err != nil {
 		fmt.Println("Error listening: ", err.Error())
@@ -34,19 +34,5 @@ func telnet(port string) {
 }
 
 func handleRequest(conn net.Conn) {
-	ReaderInput(NewInOutErr(conn, conn, nil, false))
-}
-
-func main() {
-	telnetPort := flag.Int("telnet", 0, "Open a telnet/tcp port to connect to shelly")
-	flag.Parse()
-
-	initialize()
-
-	if *telnetPort != 0 {
-		telnet(strconv.Itoa(*telnetPort))
-		return
-	} else {
-		localInput()
-	}
+	input.ReaderInput(models.NewSession(conn, conn, nil, false))
 }
