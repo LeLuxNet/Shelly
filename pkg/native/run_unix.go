@@ -2,10 +2,13 @@
 
 package native
 
-import "io"
+import (
+	"io"
+	"os/exec"
+)
 
 func Exec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
-	_, err := exec.LookPath(cmd)
+	_, err := exec.LookPath(args[0])
 	if err != nil {
 		return NoCmd{}
 	}
