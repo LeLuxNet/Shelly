@@ -11,7 +11,7 @@ func Send(msg string, writer io.Writer) {
 }
 
 func SendNl(msg string, writer io.Writer) {
-	SendRaw([]byte(msg+"\n"), writer)
+	SendRaw([]byte(msg+"\r\n"), writer)
 }
 
 func SendRaw(raw []byte, writer io.Writer) {

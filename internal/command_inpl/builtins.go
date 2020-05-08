@@ -3,9 +3,9 @@ package command_inpl
 import (
 	"github.com/LeLuxNet/Shelly/pkg/command"
 	"github.com/LeLuxNet/Shelly/pkg/errors"
-	"github.com/LeLuxNet/Shelly/pkg/models"
 	"github.com/LeLuxNet/Shelly/pkg/output"
 	"github.com/LeLuxNet/Shelly/pkg/parser"
+	"github.com/LeLuxNet/Shelly/pkg/session"
 	"io"
 	"os"
 	"strings"
@@ -14,7 +14,7 @@ import (
 
 type Echo struct{}
 
-func (Echo) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Echo) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	if len(args) < 2 {
 		return command.WrongArgCountError{Min: 1}
 	}
@@ -24,7 +24,7 @@ func (Echo) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writ
 
 type Cat struct{}
 
-func (Cat) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Cat) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
@@ -45,7 +45,7 @@ func (Cat) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Write
 
 type Cd struct{}
 
-func (Cd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Cd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
@@ -54,7 +54,7 @@ func (Cd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer
 
 type Ls struct{}
 
-func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	files, err := session.WorkingDir.ListDir(false)
 	if err != nil {
 		return err
@@ -70,20 +70,20 @@ func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer
 
 type Exit struct{}
 
-func (Exit) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Exit) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	return session.Close()
 }
 
 type Pwd struct{}
 
-func (Pwd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Pwd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	output.SendNl(session.WorkingDir.Visible, stdout)
 	return nil
 }
 
 type Sleep struct{}
 
-func (Sleep) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Sleep) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
@@ -97,7 +97,7 @@ func (Sleep) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 
 type Clear struct{}
 
-func (Clear) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *models.Session) error {
+func (Clear) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
 	err := output.ClearScreen(stdout)
 	if err != nil {
 		return errors.GeneralError{Message: err.Error()}

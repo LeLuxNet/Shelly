@@ -1,5 +1,7 @@
 package command
 
+import "github.com/LeLuxNet/Shelly/pkg/native"
+
 var registeredCmds = make(map[string]Cmd)
 
 func Register(listen string, cmd Cmd) bool {
@@ -13,3 +15,5 @@ func Register(listen string, cmd Cmd) bool {
 func GetRegistered(listen string) Cmd {
 	return registeredCmds[listen]
 }
+
+var NativeCmd = native.Native{}

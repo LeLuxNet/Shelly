@@ -2,18 +2,6 @@ package command
 
 import "strconv"
 
-type NoCmd struct {
-	Message string
-}
-
-func (NoCmd) Code() int {
-	return 2
-}
-
-func (NoCmd) Error() string {
-	return "No such cmd"
-}
-
 type WrongArgCountError struct {
 	Min int
 	Max int

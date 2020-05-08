@@ -2,13 +2,13 @@ package engine
 
 import (
 	"github.com/LeLuxNet/Shelly/pkg/command"
-	"github.com/LeLuxNet/Shelly/pkg/models"
 	"github.com/LeLuxNet/Shelly/pkg/output"
+	"github.com/LeLuxNet/Shelly/pkg/session"
 	"regexp"
 	"strings"
 )
 
-func MultiLineInput(text string, session *models.Session) {
+func MultiLineInput(text string, session *session.Session) {
 	text = strings.TrimSpace(strings.ReplaceAll(text, "\\\n", ""))
 	if text == "" {
 		return
@@ -20,30 +20,28 @@ func MultiLineInput(text string, session *models.Session) {
 	}
 }
 
-func singleLineInput(line string, session *models.Session) {
-	models.AddHistory(line)
+func singleLineInput(line string, s *session.Session) {
+	session.AddHistory(line)
 	ands := strings.Split(line, " && ")
 	for _, and := range ands {
-		code := singleCommandInput(and, session)
+		code := singleCommandInput(and, s)
 		if code != 0 {
 			break
 		}
 	}
 }
 
-func singleCommandInput(cmd string, session *models.Session) int {
+func singleCommandInput(cmd string, session *session.Session) int {
 	regex := regexp.MustCompile(`\s+`)
 	args := regex.Split(strings.TrimSpace(cmd), -1)
 	exec := command.GetRegistered(args[0])
-	var err error
 	if exec == nil {
-		err = command.NoCmd{}
-	} else {
-		err = exec.Run(args, session.In, session.Out, session.Err, session)
+		exec = command.NativeCmd
 	}
+	err := exec.Run(args, session.In, session.Out, session.Err, session)
 	if err != nil {
 		// TODO: Add error code
-		output.SendNl(err.Error(), session.Err)
+		output.SendNl("Error: "+err.Error(), session.Err)
 		return 1
 	}
 	return 0

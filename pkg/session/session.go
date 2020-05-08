@@ -1,4 +1,4 @@
-package models
+package session
 
 import (
 	"github.com/LeLuxNet/Shelly/pkg/path"

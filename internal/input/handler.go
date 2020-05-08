@@ -3,8 +3,8 @@ package input
 import (
 	"fmt"
 	"github.com/LeLuxNet/Shelly/pkg/engine"
-	"github.com/LeLuxNet/Shelly/pkg/models"
 	"github.com/LeLuxNet/Shelly/pkg/output"
+	"github.com/LeLuxNet/Shelly/pkg/session"
 	"io"
 	"os"
 	"os/user"
@@ -15,7 +15,7 @@ import (
 
 const CmdPrefix = "%s%s:%s$ "
 
-func sendCmdPrefix(session *models.Session) {
+func sendCmdPrefix(session *session.Session) {
 	cUser, err := user.Current()
 	username := ""
 	if err == nil {
@@ -36,7 +36,7 @@ func delLastChars(writer io.Writer, count int) {
 	}
 }
 
-func ReaderInput(session *models.Session) {
+func ReaderInput(session *session.Session) {
 	data := make([]byte, 1024)
 	sendCmdPrefix(session)
 	for session.Open {
@@ -93,7 +93,7 @@ func ReaderInput(session *models.Session) {
 		regex := regexp.MustCompile(`\r\n|\r\x00|\r`)
 		session.SetHistoryEntry(regex.ReplaceAllString(session.GetHistoryEntry(), "\n"))
 		if strings.HasSuffix(session.GetHistoryEntry(), "\\\n") {
-			output.Send(" >", session.Out)
+			output.Send("> ", session.Out)
 		} else if strings.HasSuffix(session.GetHistoryEntry(), "\n") {
 			engine.MultiLineInput(session.GetHistoryEntry(), session)
 			session.HistoryPos = -1
