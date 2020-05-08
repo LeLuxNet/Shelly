@@ -1,6 +1,7 @@
 package output
 
 import (
+	"github.com/LeLuxNet/Shelly/pkg/session"
 	"strconv"
 	"strings"
 )
@@ -72,6 +73,9 @@ var COLORS_F_RAINBOW = []int{
 }
 
 func GetColor(colors ...int) string {
+	if session.NoColors {
+		return ""
+	}
 	var sColors []string
 	for i := range colors {
 		sColors = append(sColors, strconv.Itoa(colors[i]))

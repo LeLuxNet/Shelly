@@ -7,6 +7,7 @@ import (
 )
 
 var history []string
+var NoColors bool
 
 func AddHistory(line string) {
 	history = append(history, line)

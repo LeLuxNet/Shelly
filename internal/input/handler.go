@@ -81,6 +81,8 @@ func ReaderInput(session *session.Session) {
 			}
 		} else if len(raw) == 1 && raw[0] == 9 {
 			// Tab
+		} else if len(raw) == 1 && raw[0] == 3 {
+			// Ctrl+C
 		} else {
 			if session.EchoInput {
 				output.SendRaw(raw, session.Out)

@@ -4,6 +4,7 @@ call :build windows
 call :build linux
 
 echo.
+cd ../out
 echo Finished!
 exit /B 0
 

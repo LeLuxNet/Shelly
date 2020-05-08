@@ -7,3 +7,7 @@ import (
 func Init() {
 	command_inpl.Register()
 }
+
+func createUserDir() {
+
+}

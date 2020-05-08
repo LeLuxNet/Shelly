@@ -52,22 +52,6 @@ func (Cd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer
 	return session.WorkingDir.ChangeDir(args[1])
 }
 
-type Ls struct{}
-
-func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
-	files, err := session.WorkingDir.ListDir(false)
-	if err != nil {
-		return err
-	}
-
-	var result []string
-	for _, file := range files {
-		result = append(result, file.Name())
-	}
-	output.SendNl(strings.Join(result, " "), stdout)
-	return nil
-}
-
 type Exit struct{}
 
 func (Exit) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {

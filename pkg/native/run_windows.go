@@ -21,7 +21,7 @@ func Exec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) er
 		return fallbackExec(args, stdin, stdout, stderr)
 	}
 
-	err = execProgram("cmd.exe", append([]string{"/C"}, file.Name()), stdin, stdout, stderr)
+	err = execProgram("cmd.exe", append([]string{"/c"}, file.Name()), stdin, stdout, stderr)
 	if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 9009 {
 		return NoCmd{}
 	} else {
@@ -30,5 +30,5 @@ func Exec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) er
 }
 
 func fallbackExec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
-	return execProgram("cmd.exe", append([]string{"/C"}, args...), stdin, stdout, stderr)
+	return execProgram("cmd.exe", append([]string{"/c"}, args...), stdin, stdout, stderr)
 }
