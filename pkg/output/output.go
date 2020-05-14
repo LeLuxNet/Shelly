@@ -6,12 +6,16 @@ import (
 	"runtime"
 )
 
+const (
+	NEWLINE = "\r\n"
+)
+
 func Send(msg string, writer io.Writer) {
 	SendRaw([]byte(msg), writer)
 }
 
 func SendNl(msg string, writer io.Writer) {
-	SendRaw([]byte(msg+"\r\n"), writer)
+	SendRaw([]byte(msg+NEWLINE), writer)
 }
 
 func SendRaw(raw []byte, writer io.Writer) {

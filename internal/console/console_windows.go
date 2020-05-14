@@ -5,7 +5,7 @@ package console
 import (
 	"fmt"
 	"github.com/LeLuxNet/Shelly/internal/input"
-	"github.com/LeLuxNet/Shelly/pkg/session"
+	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"os"
 	"syscall"
 	"unsafe"
@@ -40,7 +40,7 @@ func Local() {
 		os.Exit(1)
 	}
 
-	input.ReaderInput(session.NewSession(os.Stdin, os.Stdout, os.Stderr, true))
+	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, true))
 }
 
 func isError(err error) bool {

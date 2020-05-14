@@ -3,12 +3,12 @@ package engine
 import (
 	"github.com/LeLuxNet/Shelly/pkg/command"
 	"github.com/LeLuxNet/Shelly/pkg/output"
-	"github.com/LeLuxNet/Shelly/pkg/session"
+	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"regexp"
 	"strings"
 )
 
-func MultiLineInput(text string, session *session.Session) {
+func MultiLineInput(text string, session *sessions.Session) {
 	text = strings.TrimSpace(strings.ReplaceAll(text, "\\\n", ""))
 	if text == "" {
 		return
@@ -20,18 +20,18 @@ func MultiLineInput(text string, session *session.Session) {
 	}
 }
 
-func singleLineInput(line string, s *session.Session) {
-	session.AddHistory(line)
+func singleLineInput(line string, session *sessions.Session) {
+	sessions.AddHistory(line)
 	ands := strings.Split(line, " && ")
 	for _, and := range ands {
-		code := singleCommandInput(and, s)
+		code := singleCommandInput(and, session)
 		if code != 0 {
 			break
 		}
 	}
 }
 
-func singleCommandInput(cmd string, session *session.Session) int {
+func singleCommandInput(cmd string, session *sessions.Session) int {
 	regex := regexp.MustCompile(`\s+`)
 	args := regex.Split(strings.TrimSpace(cmd), -1)
 	exec := command.GetRegistered(args[0])

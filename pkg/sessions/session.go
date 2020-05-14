@@ -1,4 +1,4 @@
-package session
+package sessions
 
 import (
 	"github.com/LeLuxNet/Shelly/pkg/path"
@@ -8,6 +8,7 @@ import (
 
 var history []string
 var NoColors bool
+var Silent bool
 
 func AddHistory(line string) {
 	history = append(history, line)

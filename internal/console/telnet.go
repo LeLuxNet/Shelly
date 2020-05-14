@@ -3,7 +3,7 @@ package console
 import (
 	"fmt"
 	"github.com/LeLuxNet/Shelly/internal/input"
-	"github.com/LeLuxNet/Shelly/pkg/session"
+	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"net"
 	"os"
 )
@@ -34,5 +34,5 @@ func Telnet(port string) {
 }
 
 func handleRequest(conn net.Conn) {
-	input.ReaderInput(session.NewSession(conn, conn, nil, false))
+	input.ReaderInput(sessions.NewSession(conn, conn, nil, false))
 }

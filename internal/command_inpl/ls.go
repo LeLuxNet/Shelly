@@ -2,14 +2,14 @@ package command_inpl
 
 import (
 	"github.com/LeLuxNet/Shelly/pkg/output"
-	"github.com/LeLuxNet/Shelly/pkg/session"
+	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"io"
 	"os"
 )
 
 type Ls struct{}
 
-func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *session.Session) error {
+func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
 	files, err := session.WorkingDir.ListDir(false)
 	if err != nil {
 		return err

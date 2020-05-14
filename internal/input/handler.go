@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/LeLuxNet/Shelly/pkg/engine"
 	"github.com/LeLuxNet/Shelly/pkg/output"
-	"github.com/LeLuxNet/Shelly/pkg/session"
+	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"io"
 	"os"
 	"os/user"
@@ -15,7 +15,7 @@ import (
 
 const CmdPrefix = "%s%s:%s$ "
 
-func sendCmdPrefix(session *session.Session) {
+func sendCmdPrefix(session *sessions.Session) {
 	cUser, err := user.Current()
 	username := ""
 	if err == nil {
@@ -25,8 +25,10 @@ func sendCmdPrefix(session *session.Session) {
 		}
 	}
 	hostname, _ := os.Hostname()
-	prefix := fmt.Sprintf(CmdPrefix, output.Color(username, output.COLOR_F_GREEN),
-		output.Color("@"+hostname, output.COLOR_F_GREEN), output.Color(session.WorkingDir.Formatted(), output.COLOR_FB_BLUE))
+	prefix := fmt.Sprintf(CmdPrefix, 
+		output.Color(username, output.COLOR_BOLD, output.COLOR_F_GREEN),
+		output.Color("@"+hostname, output.COLOR_BOLD, output.COLOR_F_GREEN), 
+		output.Color(session.WorkingDir.Formatted(), output.COLOR_BOLD, output.COLOR_FB_BLUE))
 	output.Send(prefix, session.Out)
 }
 
@@ -36,8 +38,12 @@ func delLastChars(writer io.Writer, count int) {
 	}
 }
 
-func ReaderInput(session *session.Session) {
+func ReaderInput(session *sessions.Session) {
 	data := make([]byte, 1024)
+	output.ClearScreen(session.Out);
+	if (!sessions.Silent) {
+		output.SendNl(output.Color("Redirecting to Shelly"+output.NEWLINE, output.COLOR_ITALIC, output.COLOR_FB_YELLOW), session.Out)
+	}
 	sendCmdPrefix(session)
 	for session.Open {
 		n, err := session.In.Read(data)
