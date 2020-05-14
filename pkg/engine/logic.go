@@ -41,7 +41,7 @@ func singleCommandInput(cmd string, session *sessions.Session) int {
 	err := exec.Run(args, session.In, session.Out, session.Err, session)
 	if err != nil {
 		// TODO: Add error code
-		output.SendNl("Error: "+err.Error(), session.Err)
+		output.SendNl(output.Color(err.Error(), output.COLOR_F_RED), session.Err)
 		return 1
 	}
 	return 0

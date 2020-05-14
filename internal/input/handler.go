@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"os/user"
-	"regexp"
 	"runtime"
 	"strings"
 )
@@ -59,7 +58,7 @@ func ReaderInput(session *sessions.Session) {
 		}
 		raw := data[:n]
 		text := string(raw)
-		// fmt.Print(raw)
+		fmt.Print(raw)
 		if len(raw) == 3 && raw[0] == 27 && raw[1] == 91 {
 			switch raw[2] {
 			case 65:
@@ -100,6 +99,19 @@ func ReaderInput(session *sessions.Session) {
 			// Tab
 		} else if len(raw) == 1 && raw[0] == 3 {
 			// Ctrl+C
+		} else if len(raw) >= 1 && (raw[0] == 13 || raw[0] == 10) {
+			if len(raw) == 1 || (len(raw) == 2 && raw[1] != 10) {
+				output.SendRaw([]byte{10}, session.Out)
+			}
+			if strings.HasSuffix(session.GetHistoryEntry(), "\\") {
+				output.Send("> ", session.Out)
+			} else {
+				engine.MultiLineInput(session.GetHistoryEntry(), session)
+				session.HistoryPos = -1
+				session.InputBuffer = ""
+				session.InputStringPos = 0
+				sendCmdPrefix(session)
+			}
 		} else {
 			if session.EchoInput {
 				output.SendRaw(raw, session.Out)
@@ -111,20 +123,6 @@ func ReaderInput(session *sessions.Session) {
 				output.SendRaw([]byte{8}, session.Out)
 			}
 			session.InputStringPos++
-		}
-		if !strings.Contains(session.GetHistoryEntry(), "\n") && strings.Contains(session.GetHistoryEntry(), "\r") {
-			output.SendRaw([]byte{10}, session.Out)
-		}
-		regex := regexp.MustCompile(`\r\n|\r\x00|\r`)
-		session.SetHistoryEntry(regex.ReplaceAllString(session.GetHistoryEntry(), "\n"))
-		if strings.HasSuffix(session.GetHistoryEntry(), "\\\n") {
-			output.Send("> ", session.Out)
-		} else if strings.HasSuffix(session.GetHistoryEntry(), "\n") {
-			engine.MultiLineInput(session.GetHistoryEntry(), session)
-			session.HistoryPos = -1
-			session.InputBuffer = ""
-			session.InputStringPos = 0
-			sendCmdPrefix(session)
 		}
 	}
 }

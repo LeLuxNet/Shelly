@@ -11,7 +11,7 @@ import (
 
 func Local() {
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
-    exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
-    defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, true))
 }
