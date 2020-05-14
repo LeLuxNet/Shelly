@@ -25,9 +25,9 @@ func sendCmdPrefix(session *sessions.Session) {
 		}
 	}
 	hostname, _ := os.Hostname()
-	prefix := fmt.Sprintf(CmdPrefix, 
+	prefix := fmt.Sprintf(CmdPrefix,
 		output.Color(username, output.COLOR_BOLD, output.COLOR_F_GREEN),
-		output.Color("@"+hostname, output.COLOR_BOLD, output.COLOR_F_GREEN), 
+		output.Color("@"+hostname, output.COLOR_BOLD, output.COLOR_F_GREEN),
 		output.Color(session.WorkingDir.Formatted(), output.COLOR_BOLD, output.COLOR_FB_BLUE))
 	output.Send(prefix, session.Out)
 }
@@ -40,9 +40,9 @@ func delLastChars(writer io.Writer, count int) {
 
 func ReaderInput(session *sessions.Session) {
 	data := make([]byte, 1024)
-	output.ClearScreen(session.Out);
-	if (!sessions.Silent) {
-		output.SendNl(output.Color("Redirecting to Shelly"+output.NEWLINE, output.COLOR_ITALIC, output.COLOR_FB_YELLOW), session.Out)
+	output.ClearScreen(session.Out)
+	if !sessions.Silent {
+		output.SendNl(output.Color("Shelly"+output.NEWLINE, output.COLOR_ITALIC, output.COLOR_F_CYAN), session.Out)
 	}
 	sendCmdPrefix(session)
 	for session.Open {
@@ -70,17 +70,28 @@ func ReaderInput(session *sessions.Session) {
 				delLastChars(session.Out, len(session.GetHistoryEntry()))
 				session.HistoryPresent()
 				output.Send(session.GetHistoryEntry(), session.Out)
-			case 67: // Right
-			case 68: // Left
+			case 67:
+				if session.InputStringForward() {
+					output.SendRaw([]byte{27, 91, 67}, session.Out)
+				}
+			case 68:
+				if session.InputStringBack() {
+					output.SendRaw([]byte{27, 91, 68}, session.Out)
+				}
 			}
 		} else if len(raw) == 1 && (raw[0] == 8 || raw[0] == 127) {
-			if len(session.GetHistoryEntry()) > 0 {
+			if session.InputStringBack() {
 				entry := session.GetHistoryEntry()
-				session.SetHistoryEntry(entry[:len(entry)-1])
+				end := entry[session.InputStringPos+1:]
+				session.SetHistoryEntry(entry[:session.InputStringPos] + end)
 				if raw[0] == 8 && !session.EchoInput {
 					output.SendRaw([]byte{32, 8}, session.Out)
 				} else {
 					delLastChars(session.Out, 1)
+				}
+				output.Send(end+" ", session.Out)
+				for i := 0; i <= len(end); i++ {
+					output.SendRaw([]byte{8}, session.Out)
 				}
 			} else if raw[0] == 8 {
 				output.SendRaw([]byte{32}, session.Out)
@@ -93,7 +104,13 @@ func ReaderInput(session *sessions.Session) {
 			if session.EchoInput {
 				output.SendRaw(raw, session.Out)
 			}
-			session.SetHistoryEntry(session.GetHistoryEntry() + text)
+			end := session.GetHistoryEntry()[session.InputStringPos:]
+			session.SetHistoryEntry(session.GetHistoryEntry()[:session.InputStringPos] + text + end)
+			output.Send(end, session.Out)
+			for i := 0; i < len(end); i++ {
+				output.SendRaw([]byte{8}, session.Out)
+			}
+			session.InputStringPos++
 		}
 		if !strings.Contains(session.GetHistoryEntry(), "\n") && strings.Contains(session.GetHistoryEntry(), "\r") {
 			output.SendRaw([]byte{10}, session.Out)
@@ -106,6 +123,7 @@ func ReaderInput(session *sessions.Session) {
 			engine.MultiLineInput(session.GetHistoryEntry(), session)
 			session.HistoryPos = -1
 			session.InputBuffer = ""
+			session.InputStringPos = 0
 			sendCmdPrefix(session)
 		}
 	}

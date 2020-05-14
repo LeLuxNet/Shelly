@@ -21,6 +21,10 @@ func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer
 			result += output.GetColor(output.COLOR_F_BLUE)
 		} else if file.Mode() == os.ModeSymlink {
 			result += output.GetColor(output.COLOR_F_CYAN)
+		} else if file.Mode() == os.ModeDevice {
+			result += output.GetColor(output.COLOR_FB_YELLOW, output.COLOR_B_BLACK)
+		} else if file.Mode()&0111 != 0 {
+			result += output.GetColor(output.COLOR_FB_GREEN)
 		} else {
 			result += output.GetColor(output.COLOR_RESET)
 		}

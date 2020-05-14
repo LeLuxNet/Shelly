@@ -15,19 +15,20 @@ func AddHistory(line string) {
 }
 
 type Session struct {
-	In          io.Reader
-	Out         io.WriteCloser
-	Err         io.Writer
-	EchoInput   bool
-	WorkingDir  *path.Path
-	Open        bool
-	HistoryPos  int
-	InputBuffer string
+	In             io.Reader
+	Out            io.WriteCloser
+	Err            io.Writer
+	EchoInput      bool
+	WorkingDir     *path.Path
+	Open           bool
+	HistoryPos     int
+	InputStringPos int
+	InputBuffer    string
 }
 
 func NewSession(In io.Reader, Out io.WriteCloser, Err io.Writer, EchoInput bool) *Session {
 	dir, _ := os.Getwd()
-	return &Session{In: In, Out: Out, Err: Err, EchoInput: EchoInput, WorkingDir: path.NewPath(dir), Open: true, HistoryPos: -1}
+	return &Session{In: In, Out: Out, Err: Err, EchoInput: EchoInput, WorkingDir: path.NewPath(dir), Open: true, HistoryPos: -1, InputStringPos: 0}
 }
 
 func (s *Session) Close() error {
@@ -71,4 +72,20 @@ func (s *Session) SetHistoryEntry(text string) {
 	} else {
 		history[s.HistoryPos] = text
 	}
+}
+
+func (s *Session) InputStringBack() bool {
+	if s.InputStringPos > 0 {
+		s.InputStringPos--
+		return true
+	}
+	return false
+}
+
+func (s *Session) InputStringForward() bool {
+	if len(s.GetHistoryEntry()) > s.InputStringPos {
+		s.InputStringPos++
+		return true
+	}
+	return false
 }
