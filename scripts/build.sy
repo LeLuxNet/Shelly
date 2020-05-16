@@ -1,0 +1,11 @@
+set GOOS windows
+echo Build windows
+go build -o ../out -ldflags "-s -w" ../...
+
+set GOOS linux
+echo Build linux
+go build -o ../out -ldflags "-s -w" ../...
+
+cd ../out
+echo
+echo Finished!

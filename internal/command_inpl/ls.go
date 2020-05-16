@@ -3,13 +3,12 @@ package command_inpl
 import (
 	"github.com/LeLuxNet/Shelly/pkg/output"
 	"github.com/LeLuxNet/Shelly/pkg/sessions"
-	"io"
 	"os"
 )
 
 type Ls struct{}
 
-func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
+func (Ls) Run(args []string, std sessions.Std, session *sessions.Session) error {
 	files, err := session.WorkingDir.ListDir(false)
 	if err != nil {
 		return err
@@ -30,6 +29,6 @@ func (Ls) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer
 		}
 		result += file.Name() + "\n"
 	}
-	output.Send(result, stdout)
+	output.Send(result, std.Out)
 	return nil
 }

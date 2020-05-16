@@ -4,26 +4,26 @@ package native
 
 import (
 	"github.com/LeLuxNet/Shelly/internal/syscalls"
-	"io"
+	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-func Exec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
+func Exec(args []string, std sessions.Std, dir string) error {
 	defer syscalls.SetConsoleStdDefault()
 	file, err := ioutil.TempFile(os.TempDir(), "exec_native.*.bat")
 	if err != nil {
-		return fallbackExec(args, stdin, stdout, stderr)
+		return fallbackExec(args, std, dir)
 	}
 	defer os.Remove(file.Name())
 	_, err = file.WriteString("@echo off\n" + strings.Join(args, " ") + "\nexit /b %ERRORLEVEL%")
 	if err != nil {
-		return fallbackExec(args, stdin, stdout, stderr)
+		return fallbackExec(args, std, dir)
 	}
 
-	err = execProgram("cmd.exe", append([]string{"/c"}, file.Name()), stdin, stdout, stderr)
+	err = execProgram("cmd.exe", append([]string{"/c"}, file.Name()), std, dir)
 	if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 9009 {
 		return NoCmd{}
 	} else {
@@ -31,6 +31,6 @@ func Exec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) er
 	}
 }
 
-func fallbackExec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
-	return execProgram("cmd.exe", append([]string{"/c"}, args...), stdin, stdout, stderr)
+func fallbackExec(args []string, std sessions.Std, dir string) error {
+	return execProgram("cmd.exe", append([]string{"/c"}, args...), std, dir)
 }

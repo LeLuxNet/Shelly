@@ -2,13 +2,12 @@ package native
 
 import (
 	"github.com/LeLuxNet/Shelly/pkg/sessions"
-	"io"
 )
 
 type Native struct{}
 
-func (Native) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
-	return Exec(args, stdin, stdout, stderr)
+func (Native) Run(args []string, std sessions.Std, session *sessions.Session) error {
+	return Exec(args, std, session.WorkingDir.General)
 }
 
 type NoCmd struct {

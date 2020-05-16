@@ -14,14 +14,14 @@ import (
 
 type Echo struct{}
 
-func (Echo) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
-	output.SendNl(strings.Join(args[1:], " "), stdout)
+func (Echo) Run(args []string, std sessions.Std, session *sessions.Session) error {
+	output.SendNl(strings.Join(args[1:], " "), std.Out)
 	return nil
 }
 
 type Cat struct{}
 
-func (Cat) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
+func (Cat) Run(args []string, std sessions.Std, session *sessions.Session) error {
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
@@ -33,7 +33,7 @@ func (Cat) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Write
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(stdout, file)
+	_, err = io.Copy(std.Out, file)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (Cat) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Write
 
 type Cd struct{}
 
-func (Cd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
+func (Cd) Run(args []string, std sessions.Std, session *sessions.Session) error {
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
@@ -51,20 +51,20 @@ func (Cd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer
 
 type Exit struct{}
 
-func (Exit) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
+func (Exit) Run(args []string, std sessions.Std, session *sessions.Session) error {
 	return session.Close()
 }
 
 type Pwd struct{}
 
-func (Pwd) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
-	output.SendNl(session.WorkingDir.Visible, stdout)
+func (Pwd) Run(args []string, std sessions.Std, session *sessions.Session) error {
+	output.SendNl(session.WorkingDir.Visible, std.Out)
 	return nil
 }
 
 type Sleep struct{}
 
-func (Sleep) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
+func (Sleep) Run(args []string, std sessions.Std, session *sessions.Session) error {
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
@@ -78,8 +78,8 @@ func (Sleep) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Wri
 
 type Clear struct{}
 
-func (Clear) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
-	err := output.ClearScreen(stdout)
+func (Clear) Run(args []string, std sessions.Std, session *sessions.Session) error {
+	err := output.ClearScreen(std.Out)
 	if err != nil {
 		return errors.GeneralError{Message: err.Error()}
 	}

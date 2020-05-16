@@ -36,7 +36,7 @@ func singleCommandInput(cmd string, session *sessions.Session) int {
 	args := regex.Split(strings.TrimSpace(cmd), -1)
 	newCmd, exe := command.GetRegisteredNative(args[0])
 	args[0] = newCmd
-	err := exe.Run(args, session.In, session.Out, session.Err, session)
+	err := exe.Run(args, sessions.Std{session.In, session.Out, session.Err}, session)
 	if err != nil {
 		// TODO: Add error code
 		output.SendNl(output.Color(err.Error(), output.COLOR_F_RED), session.Err)
