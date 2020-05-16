@@ -3,6 +3,7 @@
 package native
 
 import (
+	"github.com/LeLuxNet/Shelly/internal/syscalls"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +12,7 @@ import (
 )
 
 func Exec(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
+	defer syscalls.SetConsoleStdDefault()
 	file, err := ioutil.TempFile(os.TempDir(), "exec_native.*.bat")
 	if err != nil {
 		return fallbackExec(args, stdin, stdout, stderr)
