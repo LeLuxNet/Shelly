@@ -45,6 +45,7 @@ func (s *Session) HistoryPast() {
 	} else {
 		s.HistoryPos--
 	}
+	s.InputStringPos = len(s.GetHistoryEntry())
 }
 
 func (s *Session) HistoryPresent() {
@@ -56,6 +57,7 @@ func (s *Session) HistoryPresent() {
 	} else {
 		s.HistoryPos = -1
 	}
+	s.InputStringPos = len(s.GetHistoryEntry())
 }
 
 func (s *Session) GetHistoryEntry() string {

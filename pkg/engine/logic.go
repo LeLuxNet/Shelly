@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func MultiLineInput(text string, session *sessions.Session) {
+func MultiLineInput(text string, std sessions.Std, session *sessions.Session) {
 	text = strings.TrimSpace(strings.ReplaceAll(text, "\\\n", ""))
 	if text == "" {
 		return
@@ -16,30 +16,30 @@ func MultiLineInput(text string, session *sessions.Session) {
 	regex := regexp.MustCompile(`( *[;\n] *)`)
 	lines := regex.Split(text, -1)
 	for _, line := range lines {
-		singleLineInput(line, session)
+		singleLineInput(line, std, session)
 	}
 }
 
-func singleLineInput(line string, session *sessions.Session) {
+func singleLineInput(line string, std sessions.Std, session *sessions.Session) {
 	sessions.AddHistory(line)
 	ands := strings.Split(line, " && ")
 	for _, and := range ands {
-		code := singleCommandInput(and, session)
+		code := singleCommandInput(and, std, session)
 		if code != 0 {
 			break
 		}
 	}
 }
 
-func singleCommandInput(cmd string, session *sessions.Session) int {
+func singleCommandInput(cmd string, std sessions.Std, session *sessions.Session) int {
 	regex := regexp.MustCompile(`\s+`)
 	args := regex.Split(strings.TrimSpace(cmd), -1)
 	newCmd, exe := command.GetRegisteredNative(args[0])
 	args[0] = newCmd
-	err := exe.Run(args, sessions.Std{session.In, session.Out, session.Err}, session)
+	err := exe.Run(args, std, session)
 	if err != nil {
 		// TODO: Add error code
-		output.SendNl(output.Color(err.Error(), output.COLOR_F_RED), session.Err)
+		output.SendNl(output.Color(err.Error(), output.COLOR_F_RED), std.Err)
 		return 1
 	}
 	return 0

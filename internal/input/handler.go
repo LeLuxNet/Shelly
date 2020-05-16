@@ -106,7 +106,8 @@ func ReaderInput(session *sessions.Session) {
 			if strings.HasSuffix(session.GetHistoryEntry(), "\\") {
 				output.Send("> ", session.Out)
 			} else {
-				engine.MultiLineInput(session.GetHistoryEntry(), session)
+				engine.MultiLineInput(session.GetHistoryEntry(),
+					sessions.Std{In: session.In, Out: session.Out, Err: session.Err}, session)
 				session.HistoryPos = -1
 				session.InputBuffer = ""
 				session.InputStringPos = 0
