@@ -58,7 +58,7 @@ func ReaderInput(session *sessions.Session) {
 		}
 		raw := data[:n]
 		text := string(raw)
-		fmt.Print(raw)
+		// fmt.Print(raw)
 		if len(raw) == 3 && raw[0] == 27 && raw[1] == 91 {
 			switch raw[2] {
 			case 65:

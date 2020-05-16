@@ -15,9 +15,6 @@ import (
 type Echo struct{}
 
 func (Echo) Run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer, session *sessions.Session) error {
-	if len(args) < 2 {
-		return command.WrongArgCountError{Min: 1}
-	}
 	output.SendNl(strings.Join(args[1:], " "), stdout)
 	return nil
 }
@@ -102,4 +99,7 @@ func Register() {
 	command.Register("sleep", Sleep{})
 	command.Register("clear", Clear{})
 	command.Register("run", Run{})
+
+	command.Register("set", Set{})
+	command.Register("export", Set{})
 }
