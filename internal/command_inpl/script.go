@@ -13,9 +13,9 @@ func (Run) Run(args []string, std sessions.Std, session *sessions.Session) error
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
-	path, cErr := session.WorkingDir.GetRelativePath(args[1])
-	if cErr != nil {
-		return cErr
+	path, err := session.WorkingDir.GetRelativePath(args[1], true)
+	if err != nil {
+		return err
 	}
 	data, err := ioutil.ReadFile(path.General)
 	if err != nil {

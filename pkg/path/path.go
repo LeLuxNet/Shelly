@@ -1,7 +1,6 @@
 package path
 
 import (
-	"github.com/LeLuxNet/Shelly/pkg/errors"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -27,31 +26,51 @@ func generateVisible(general string) string {
 	return "/" + strings.Replace(general, ":", "", 1)
 }
 
-func (p *Path) ChangeDir(relative string) errors.CommandError {
-	target, err := getRelativePathString(p.General, relative)
+func generateGeneral(visible string) string {
+	if runtime.GOOS != "windows" {
+		return visible
+	}
+	return strings.Replace(strings.TrimPrefix(visible, "/"), "/", ":/", 1)
+}
+
+func (p *Path) ChangeDir(relative string) error {
+	target, err := getRelativePathString(p.General, relative, true)
 	if err != nil {
 		return err
 	}
+	old := p.General
 	p.General = target
+	err = p.ExpectDir(true)
+	if err != nil {
+		p.General = old
+		return err
+	}
 	p.regenerateVisible()
 	return nil
 }
 
-func (p Path) GetRelativePath(relative string) (*Path, errors.CommandError) {
-	target, err := getRelativePathString(p.General, relative)
+func (p Path) GetRelativePath(relative string, exists bool) (*Path, error) {
+	target, err := getRelativePathString(p.General, relative, exists)
 	if err != nil {
 		return nil, err
 	}
 	return NewPath(target), nil
 }
 
-func getRelativePathString(base string, relative string) (string, errors.CommandError) {
-	target := path.Join(base, relative)
-	_, err := os.Stat(target)
-	if os.IsNotExist(err) {
-		return "", PathError{NotExists}
-	} else if err != nil {
-		return "", errors.GeneralError{Message: err.Error()}
+func getRelativePathString(base string, relative string, exists bool) (string, error) {
+	var target string
+	if strings.HasPrefix(relative, "/") {
+		target = generateGeneral(relative)
+	} else {
+		target = path.Join(base, relative)
+	}
+	if exists {
+		_, err := os.Stat(target)
+		if os.IsNotExist(err) {
+			return "", PathError{NotExists}
+		} else if err != nil {
+			return "", err
+		}
 	}
 	return target, nil
 }
@@ -74,10 +93,10 @@ func (p *Path) Formatted() string {
 	return formatted
 }
 
-func (p *Path) ListDir(showDotted bool) (list []os.FileInfo, error errors.CommandError) {
+func (p *Path) ListDir(showDotted bool) (list []os.FileInfo, error error) {
 	raw, err := ioutil.ReadDir(p.General)
 	if err != nil {
-		return nil, errors.GeneralError{Message: err.Error()}
+		return nil, err
 	}
 
 	var files []os.FileInfo
@@ -91,4 +110,17 @@ func (p *Path) ListDir(showDotted bool) (list []os.FileInfo, error errors.Comman
 
 func (p *Path) regenerateVisible() {
 	p.Visible = generateVisible(p.General)
+}
+
+func (p *Path) ExpectDir(dir bool) error {
+	file, err := os.Stat(p.General)
+	if err != nil {
+		return err
+	}
+	if file.Mode().IsRegular() && dir {
+		return PathError{Id: NoDir}
+	} else if file.Mode().IsDir() && !dir {
+		return PathError{Id: NoFile}
+	}
+	return nil
 }
