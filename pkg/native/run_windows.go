@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 func Exec(args []string, std sessions.Std, dir string) error {
@@ -18,7 +17,7 @@ func Exec(args []string, std sessions.Std, dir string) error {
 		return fallbackExec(args, std, dir)
 	}
 	defer os.Remove(file.Name())
-	_, err = file.WriteString("@echo off\n" + strings.Join(args, " ") + "\nexit /b %ERRORLEVEL%")
+	_, err = file.WriteString("@echo off\n" + join(args) + "\nexit /b %ERRORLEVEL%")
 	if err != nil {
 		return fallbackExec(args, std, dir)
 	}

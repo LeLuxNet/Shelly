@@ -2,6 +2,7 @@ package input
 
 import (
 	"fmt"
+	"github.com/LeLuxNet/Shelly/internal/sudo"
 	"github.com/LeLuxNet/Shelly/pkg/engine"
 	"github.com/LeLuxNet/Shelly/pkg/output"
 	"github.com/LeLuxNet/Shelly/pkg/sessions"
@@ -12,7 +13,7 @@ import (
 	"strings"
 )
 
-const CmdPrefix = "%s%s:%s$ "
+const CmdPrefix = "%s%s:%s%s "
 
 func sendCmdPrefix(session *sessions.Session) {
 	cUser, err := user.Current()
@@ -24,10 +25,15 @@ func sendCmdPrefix(session *sessions.Session) {
 		}
 	}
 	hostname, _ := os.Hostname()
+	userSymbol := "$"
+	if sudo.IsRoot() {
+		userSymbol = "#"
+	}
 	prefix := fmt.Sprintf(CmdPrefix,
 		output.Color(username, output.COLOR_BOLD, output.COLOR_F_GREEN),
 		output.Color("@"+hostname, output.COLOR_BOLD, output.COLOR_F_GREEN),
-		output.Color(session.WorkingDir.Formatted(), output.COLOR_BOLD, output.COLOR_FB_BLUE))
+		output.Color(session.WorkingDir.Formatted(), output.COLOR_BOLD, output.COLOR_FB_BLUE),
+		userSymbol)
 	output.Send(prefix, session.Out)
 }
 
@@ -107,7 +113,7 @@ func ReaderInput(session *sessions.Session) {
 				output.Send("> ", session.Out)
 			} else {
 				engine.MultiLineInput(session.GetHistoryEntry(),
-					sessions.Std{In: session.In, Out: session.Out, Err: session.Err}, session)
+					sessions.Std{In: session.In, Out: session.Out, Err: session.Err}, session, true)
 				session.HistoryPos = -1
 				session.InputBuffer = ""
 				session.InputStringPos = 0

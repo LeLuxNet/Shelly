@@ -8,20 +8,22 @@ import (
 	"strings"
 )
 
-func MultiLineInput(text string, std sessions.Std, session *sessions.Session) {
+func MultiLineInput(text string, std sessions.Std, session *sessions.Session, history bool) {
 	text = strings.TrimSpace(strings.ReplaceAll(text, "\\\n", ""))
 	if text == "" {
 		return
 	}
-	regex := regexp.MustCompile(`( *[;\n] *)`)
+	regex := regexp.MustCompile(`( *(?:;|\n|\r\n) *)`)
 	lines := regex.Split(text, -1)
 	for _, line := range lines {
-		singleLineInput(line, std, session)
+		singleLineInput(line, std, session, history)
 	}
 }
 
-func singleLineInput(line string, std sessions.Std, session *sessions.Session) {
-	sessions.AddHistory(line)
+func singleLineInput(line string, std sessions.Std, session *sessions.Session, history bool) {
+	if history {
+		sessions.AddHistory(line)
+	}
 	ands := strings.Split(line, " && ")
 	for _, and := range ands {
 		code := singleCommandInput(and, std, session)
@@ -32,8 +34,7 @@ func singleLineInput(line string, std sessions.Std, session *sessions.Session) {
 }
 
 func singleCommandInput(cmd string, std sessions.Std, session *sessions.Session) int {
-	regex := regexp.MustCompile(`\s+`)
-	args := regex.Split(strings.TrimSpace(cmd), -1)
+	args := split(cmd, ' ', '"')
 	newCmd, exe := command.GetRegisteredNative(args[0])
 	args[0] = newCmd
 	err := exe.Run(args, std, session)
@@ -43,4 +44,29 @@ func singleCommandInput(cmd string, std sessions.Std, session *sessions.Session)
 		return 1
 	}
 	return 0
+}
+
+func split(input string, sep rune, stick rune) []string {
+	var result []string
+	part := ""
+	stickActive := false
+	for _, char := range input {
+		if stickActive {
+			if char == stick {
+				stickActive = false
+			} else {
+				part += string(char)
+			}
+		} else {
+			if char == stick && part == "" {
+				stickActive = true
+			} else if char == sep && part != "" {
+				result = append(result, part)
+				part = ""
+			} else {
+				part += string(char)
+			}
+		}
+	}
+	return append(result, part)
 }

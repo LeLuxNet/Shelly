@@ -21,6 +21,6 @@ func (Run) Run(args []string, std sessions.Std, session *sessions.Session) error
 	if err != nil {
 		return err
 	}
-	engine.MultiLineInput(string(data), std, session)
+	engine.MultiLineInput(string(data), std, session, false)
 	return nil
 }
