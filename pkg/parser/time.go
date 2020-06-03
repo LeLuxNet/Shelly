@@ -1,13 +1,12 @@
 package parser
 
 import (
-	"github.com/LeLuxNet/Shelly/pkg/errors"
 	"regexp"
 	"strconv"
 	"time"
 )
 
-func ParseTime(input string) (time.Duration, errors.CommandError) {
+func ParseDuration(input string) (time.Duration, error) {
 	regex := regexp.MustCompile(`([0-9]+)([a-z]*)`)
 	parts := regex.FindStringSubmatch(input)
 	var mult time.Duration

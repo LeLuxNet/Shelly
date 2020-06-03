@@ -71,7 +71,7 @@ func (Sleep) Run(args []string, std sessions.Std, session *sessions.Session) err
 	if len(args) != 2 {
 		return command.WrongArgCountError{Min: 1, Max: 1}
 	}
-	duration, err := parser.ParseTime(args[1])
+	duration, err := parser.ParseDuration(args[1])
 	if err != nil {
 		return err
 	}

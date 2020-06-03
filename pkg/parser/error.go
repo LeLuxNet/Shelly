@@ -1,7 +1,8 @@
 package parser
 
 const (
-	NotInt = iota
+	NotParsableType = iota
+	NotInt
 )
 
 type ParseError struct {
@@ -14,8 +15,10 @@ func (ParseError) Code() int {
 
 func (e ParseError) Error() string {
 	switch e.Reason {
+	case NotParsableType:
+		return "This type is not parsable"
 	case NotInt:
-		return "Argument has to be an int"
+		return "Argument has to be a number"
 	}
 	return "Parse Error"
 }

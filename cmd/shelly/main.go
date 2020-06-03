@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/LeLuxNet/Shelly/internal/console"
-	"github.com/LeLuxNet/Shelly/pkg/initialize"
+	"github.com/LeLuxNet/Shelly/internal/initialize"
 	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"os"
 	"strconv"
@@ -17,7 +17,7 @@ func main() {
 	inception := flag.Bool("inception", false, "Allow to run shelly inside of shelly")
 	flag.Parse()
 
-	if !*inception && os.Getenv(initialize.SHELLY_RUNNING_ENV) == "1" {
+	if !*inception && os.Getenv(initialize.RunningEnv) == "1" {
 		fmt.Println("You are trying to run shelly inside of shelly.")
 		fmt.Println("If you are sure this is what you want run shelly again with the -inception argument")
 		os.Exit(1)
