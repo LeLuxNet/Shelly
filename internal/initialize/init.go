@@ -24,29 +24,32 @@ func Init() {
 }
 
 func createUserDir() {
-	user, err := user.Current()
+	cUser, err := user.Current()
 	if err != nil {
-		fmt.Println("Unable to get user homedir: " + err.Error())
+		fmt.Println("Unable to get cUser homedir: " + err.Error())
 		os.Exit(1)
 	}
 
-	folder := path.NewPath(user.HomeDir)
+	folder, err := path.NewPath(cUser.HomeDir).GetRelativePath(ShellyUserFolder, false)
+	if err != nil {
+		fmt.Println("Unable to get dir: " + err.Error())
+		os.Exit(1)
+	}
 
-	err = folder.MkDir(ShellyUserFolder, true)
+	err = folder.MkDir(true)
 	if err != nil {
 		fmt.Println("Unable to create dir: " + err.Error())
 		os.Exit(1)
 	}
-	err = folder.ChangeDir(ShellyUserFolder)
+
+	subFolder, err := folder.GetRelativePath(ScriptsFolder, false)
 	if err != nil {
-		fmt.Println("Unable to change dir: " + err.Error())
+		fmt.Println("Unable to get dir: " + err.Error())
 		os.Exit(1)
 	}
-
-	err = folder.MkDir(ScriptsFolder, true)
+	err = subFolder.MkDir(true)
 	if err != nil {
 		fmt.Println("Unable to create dir: " + err.Error())
 		os.Exit(1)
 	}
-	err = folder.ChangeDir(ScriptsFolder)
 }

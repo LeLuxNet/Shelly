@@ -3,7 +3,10 @@ package engine
 import (
 	"github.com/LeLuxNet/Shelly/pkg/command"
 	"github.com/LeLuxNet/Shelly/pkg/output"
+	"github.com/LeLuxNet/Shelly/pkg/path"
 	"github.com/LeLuxNet/Shelly/pkg/sessions"
+	"os"
+	"os/user"
 	"regexp"
 	"strings"
 )
@@ -35,6 +38,9 @@ func singleLineInput(line string, std sessions.Std, session *sessions.Session, h
 
 func singleCommandInput(cmd string, std sessions.Std, session *sessions.Session) int {
 	args := split(cmd, ' ', '"')
+	for i := 0; i < len(args); i++ {
+		args[i] = varReplacement(args[i])
+	}
 	newCmd, exe := command.GetRegisteredNative(args[0])
 	args[0] = newCmd
 	err := exe.Run(args, std, session)
@@ -69,4 +75,27 @@ func split(input string, sep rune, stick rune) []string {
 		}
 	}
 	return append(result, part)
+}
+
+func varReplacement(source string) string {
+	cUser, err := user.Current()
+	if err == nil {
+		source = strings.ReplaceAll(source, "~", path.NewVPath(cUser.HomeDir).Visible)
+	}
+
+	regex := regexp.MustCompile(`\$(?:{(.+)}|([^\s]+))`)
+	for _, match := range regex.FindAllStringSubmatch(source, -1) {
+		var submatch string
+		if len(match[1]) > 0 {
+			submatch = match[1]
+		} else {
+			submatch = match[2]
+		}
+		source = strings.Replace(source, match[0], evaluateEnv(submatch), 1)
+	}
+	return source
+}
+
+func evaluateEnv(source string) string {
+	return os.Getenv(source)
 }

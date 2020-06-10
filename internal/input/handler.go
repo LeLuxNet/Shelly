@@ -53,10 +53,7 @@ func ReaderInput(session *sessions.Session) {
 	for session.Open {
 		n, err := session.In.Read(data)
 		if err == io.EOF {
-			err := session.Out.Close()
-			if err != nil {
-				fmt.Println("Error closing:", err.Error())
-			}
+			session.Open = false
 			break
 		}
 		if err != nil {
@@ -114,10 +111,12 @@ func ReaderInput(session *sessions.Session) {
 			} else {
 				engine.MultiLineInput(session.GetHistoryEntry(),
 					sessions.Std{In: session.In, Out: session.Out, Err: session.Err}, session, true)
-				session.HistoryPos = -1
-				session.InputBuffer = ""
-				session.InputStringPos = 0
-				sendCmdPrefix(session)
+				if session.Open {
+					session.HistoryPos = -1
+					session.InputBuffer = ""
+					session.InputStringPos = 0
+					sendCmdPrefix(session)
+				}
 			}
 		} else {
 			if session.EchoInput {

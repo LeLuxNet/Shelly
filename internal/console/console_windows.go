@@ -12,7 +12,7 @@ import (
 func Local() {
 	in, out := syscalls.GetConsoleStd()
 	syscalls.SetConsoleStdDefault()
-	defer syscalls.SetConsoleStd(in, out)
 
 	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, true))
+	syscalls.SetConsoleStd(in, out)
 }

@@ -85,12 +85,8 @@ func (p *Path) ExpectDir(dir bool) error {
 	return nil
 }
 
-func (p *Path) MkDir(name string, mayExists bool) error {
-	dir, err := getRelativePathString(p.General, name, false)
-	if err != nil {
-		return err
-	}
-	err = os.Mkdir(dir, os.ModeDir)
+func (p *Path) MkDir(mayExists bool) error {
+	err := os.Mkdir(p.General, os.ModeDir)
 	if mayExists && os.IsExist(err) {
 		return nil
 	}

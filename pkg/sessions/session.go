@@ -16,7 +16,7 @@ func AddHistory(line string) {
 
 type Session struct {
 	In             io.Reader
-	Out            io.WriteCloser
+	Out            io.Writer
 	Err            io.Writer
 	EchoInput      bool
 	WorkingDir     *path.VPath
@@ -26,7 +26,7 @@ type Session struct {
 	InputBuffer    string
 }
 
-func NewSession(In io.Reader, Out io.WriteCloser, Err io.Writer, EchoInput bool) *Session {
+func NewSession(in io.Reader, out io.Writer, err io.Writer, echoInput bool) *Session {
 	dir, _ := os.Getwd()
 	if err == nil {
 		err = out
@@ -36,7 +36,7 @@ func NewSession(In io.Reader, Out io.WriteCloser, Err io.Writer, EchoInput bool)
 
 func (s *Session) Close() error {
 	s.Open = false
-	return s.Out.Close()
+	return nil
 }
 
 func (s *Session) HistoryPast() {
