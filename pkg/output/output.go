@@ -2,8 +2,6 @@ package output
 
 import (
 	"io"
-	"os/exec"
-	"runtime"
 )
 
 const (
@@ -23,12 +21,6 @@ func SendRaw(raw []byte, writer io.Writer) {
 }
 
 func ClearScreen(out io.Writer) error {
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", "cls")
-	} else {
-		cmd = exec.Command("clear")
-	}
-	cmd.Stdout = out
-	return cmd.Run()
+	Send("\u001b[2J", out)
+	return nil
 }
