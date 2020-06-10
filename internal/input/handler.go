@@ -106,7 +106,7 @@ func ReaderInput(session *sessions.Session) {
 		} else if len(raw) == 1 && raw[0] == 3 {
 			// Ctrl+C
 		} else if len(raw) >= 1 && (raw[0] == 13 || raw[0] == 10) {
-			if len(raw) == 1 || (len(raw) == 2 && raw[1] != 10) {
+			if !containsByte(10, raw) {
 				output.SendRaw([]byte{10}, session.Out)
 			}
 			if strings.HasSuffix(session.GetHistoryEntry(), "\\") {
@@ -132,4 +132,13 @@ func ReaderInput(session *sessions.Session) {
 			session.InputStringPos++
 		}
 	}
+}
+
+func containsByte(searched byte, bytes []byte) bool {
+	for _, singleByte := range bytes {
+		if singleByte == searched {
+			return true
+		}
+	}
+	return false
 }

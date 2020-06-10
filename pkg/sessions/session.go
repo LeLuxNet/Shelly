@@ -28,7 +28,10 @@ type Session struct {
 
 func NewSession(In io.Reader, Out io.WriteCloser, Err io.Writer, EchoInput bool) *Session {
 	dir, _ := os.Getwd()
-	return &Session{In: In, Out: Out, Err: Err, EchoInput: EchoInput, WorkingDir: path.NewVPath(dir), Open: true, HistoryPos: -1, InputStringPos: 0}
+	if err == nil {
+		err = out
+	}
+	return &Session{In: in, Out: out, Err: err, EchoInput: echoInput, WorkingDir: path.NewVPath(dir), Open: true, HistoryPos: -1, InputStringPos: 0}
 }
 
 func (s *Session) Close() error {
