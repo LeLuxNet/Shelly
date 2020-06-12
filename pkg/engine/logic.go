@@ -16,7 +16,7 @@ func MultiLineInput(text string, std sessions.Std, session *sessions.Session, hi
 	if text == "" {
 		return
 	}
-	regex := regexp.MustCompile(`( *(?:;|\n|\r\n) *)`)
+	regex := regexp.MustCompile(`\s*(?:;|\n|\r\n|^|$)(?:\s*#.*|\s*)`)
 	lines := regex.Split(text, -1)
 	for _, line := range lines {
 		singleLineInput(line, std, session, history)
@@ -24,6 +24,9 @@ func MultiLineInput(text string, std sessions.Std, session *sessions.Session, hi
 }
 
 func singleLineInput(line string, std sessions.Std, session *sessions.Session, history bool) {
+	if line == "" {
+		return
+	}
 	if history {
 		sessions.AddHistory(line)
 	}

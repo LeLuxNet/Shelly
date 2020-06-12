@@ -34,7 +34,7 @@ func Telnet(port string) {
 }
 
 func handleRequest(conn net.Conn) {
-	input.ReaderInput(sessions.NewSession(conn, conn, nil, false))
+	input.ReaderInput(sessions.NewSession(conn, conn, nil, false, sessions.Telnet))
 	err := conn.Close()
 	if err != nil {
 		fmt.Println("Error closing telnet connection: " + err.Error())

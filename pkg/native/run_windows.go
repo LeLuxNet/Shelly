@@ -3,13 +3,17 @@
 package native
 
 import (
+	"github.com/LeLuxNet/Shelly/internal/syscalls"
 	"github.com/LeLuxNet/Shelly/pkg/sessions"
 	"io/ioutil"
 	"os"
 	"os/exec"
 )
 
-func Exec(args []string, std sessions.Std, dir string) error {
+func Exec(args []string, std sessions.Std, dir string, session *sessions.Session) error {
+	if session.Type == sessions.Local {
+		defer syscalls.SetConsoleStdDefault()
+	}
 	file, err := ioutil.TempFile(os.TempDir(), "exec_native.*.bat")
 	if err != nil {
 		return fallbackExec(args, std, dir)

@@ -13,6 +13,6 @@ func Local() {
 	in, out := syscalls.GetConsoleStd()
 	syscalls.SetConsoleStdDefault()
 
-	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, true))
+	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, true, sessions.Local))
 	syscalls.SetConsoleStd(in, out)
 }

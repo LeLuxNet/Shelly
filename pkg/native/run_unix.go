@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-func Exec(args []string, std sessions.Std, dir string) error {
+func Exec(args []string, std sessions.Std, dir string, session *sessions.Session) error {
 	_, err := exec.LookPath(args[0])
 	if err != nil {
 		return NoCmd{}

@@ -10,6 +10,11 @@ var history []string
 var NoColors bool
 var Silent bool
 
+const (
+	Local = iota
+	Telnet
+)
+
 func AddHistory(line string) {
 	history = append(history, line)
 }
@@ -19,6 +24,7 @@ type Session struct {
 	Out            io.Writer
 	Err            io.Writer
 	EchoInput      bool
+	Type           int
 	WorkingDir     *path.VPath
 	Open           bool
 	HistoryPos     int
@@ -26,12 +32,13 @@ type Session struct {
 	InputBuffer    string
 }
 
-func NewSession(in io.Reader, out io.Writer, err io.Writer, echoInput bool) *Session {
+func NewSession(in io.Reader, out io.Writer, err io.Writer, echoInput bool, sessionType int) *Session {
 	dir, _ := os.Getwd()
 	if err == nil {
 		err = out
 	}
-	return &Session{In: in, Out: out, Err: err, EchoInput: echoInput, WorkingDir: path.NewVPath(dir), Open: true, HistoryPos: -1, InputStringPos: 0}
+	return &Session{In: in, Out: out, Err: err, EchoInput: echoInput, Type: sessionType,
+		WorkingDir: path.NewVPath(dir), Open: true, HistoryPos: -1, InputStringPos: 0}
 }
 
 func (s *Session) Close() error {

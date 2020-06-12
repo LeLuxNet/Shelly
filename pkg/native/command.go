@@ -7,7 +7,7 @@ import (
 type Native struct{}
 
 func (Native) Run(args []string, std sessions.Std, session *sessions.Session) error {
-	return Exec(args, std, session.WorkingDir.General)
+	return Exec(args, std, session.WorkingDir.General, session)
 }
 
 type NoCmd struct {
