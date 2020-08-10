@@ -3,7 +3,6 @@
 package syscalls
 
 import (
-	"fmt"
 	"os"
 	"syscall"
 	"unsafe"
@@ -13,42 +12,42 @@ func isError(err error) bool {
 	return err != nil && err.Error() != "The operation completed successfully."
 }
 
-func SetConsoleStdDefault() {
-	SetConsoleStd(0x0200, 0x0001|0x0002|0x0004)
+func SetConsoleStdDefault() (error, error) {
+	return SetConsoleStd(0x0200, 0x0001|0x0002|0x0004)
 }
 
-func SetConsoleStd(in uintptr, out uintptr) {
+func SetConsoleStd(in uintptr, out uintptr) (error, error) {
 	kernel32DLL := syscall.NewLazyDLL("kernel32.dll")
 	proc := kernel32DLL.NewProc("SetConsoleMode")
 
 	// https://docs.microsoft.com/en-us/windows/console/setconsolemode
-	setConsoleMode(in, os.Stdin.Fd(), proc)
-	setConsoleMode(out, os.Stdout.Fd(), proc)
+	inErr := setConsoleMode(in, os.Stdin.Fd(), proc)
+	outErr := setConsoleMode(out, os.Stdout.Fd(), proc)
+	return inErr, outErr
 }
 
-func GetConsoleStd() (uintptr, uintptr) {
+func GetConsoleStd() (uintptr, uintptr, error, error) {
 	kernel32DLL := syscall.NewLazyDLL("kernel32.dll")
 	proc := kernel32DLL.NewProc("GetConsoleMode")
 
-	in := getConsoleMode(os.Stdin.Fd(), proc)
-	out := getConsoleMode(os.Stdout.Fd(), proc)
-	return in, out
+	in, inErr := getConsoleMode(os.Stdin.Fd(), proc)
+	out, outErr := getConsoleMode(os.Stdout.Fd(), proc)
+	return in, out, inErr, outErr
 }
 
-func setConsoleMode(data uintptr, handle uintptr, proc *syscall.LazyProc) {
+func setConsoleMode(data uintptr, handle uintptr, proc *syscall.LazyProc) error {
 	_, _, err := proc.Call(handle, data)
 	if isError(err) {
-		fmt.Println("Unable to set Windows Console mode: " + err.Error())
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
-func getConsoleMode(handle uintptr, proc *syscall.LazyProc) uintptr {
+func getConsoleMode(handle uintptr, proc *syscall.LazyProc) (uintptr, error) {
 	var old uint64 = 0
 	_, _, err := proc.Call(handle, uintptr(unsafe.Pointer(&old)))
 	if isError(err) {
-		fmt.Println("Unable to get Windows Console mode: " + err.Error())
-		os.Exit(1)
+		return 0, err
 	}
-	return uintptr(old)
+	return uintptr(old), nil
 }

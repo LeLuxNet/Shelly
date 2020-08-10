@@ -10,9 +10,15 @@ import (
 )
 
 func Local() {
-	in, out := syscalls.GetConsoleStd()
-	syscalls.SetConsoleStdDefault()
+	in, out, inErr, outErr := syscalls.GetConsoleStd()
+	if inErr == nil && outErr == nil {
+		defer syscalls.SetConsoleStd(in, out)
+	}
+	inErr, outErr = syscalls.SetConsoleStdDefault()
+	echo := true
+	if outErr != nil {
+		echo = false
+	}
 
-	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, true, sessions.Local))
-	syscalls.SetConsoleStd(in, out)
+	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, echo, sessions.Local))
 }

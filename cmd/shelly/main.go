@@ -1,25 +1,31 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/LeLuxNet/Shelly/internal/console"
 	"github.com/LeLuxNet/Shelly/internal/initialize"
 	"github.com/LeLuxNet/Shelly/pkg/sessions"
+	"github.com/akamensky/argparse"
 	"os"
 	"strconv"
 )
 
 func main() {
-	noColor := flag.Bool("no-colors", false, "Disable colors")
-	telnetPort := flag.Int("telnet", 0, "Open a telnet/tcp port to connect to shelly")
-	silent := flag.Bool("silent", false, "Launch shelly silent")
-	inception := flag.Bool("inception", false, "Allow to run shelly inside of shelly")
-	flag.Parse()
+	parser := argparse.NewParser("shelly.wasm", "The cross-platform shell")
 
-	if !*inception && os.Getenv(initialize.RunningEnv) == "1" {
+	noColor := parser.Flag("", "no-colors", &argparse.Options{Help: "Disable colors"})
+	telnetPort := parser.Int("t", "telnet", &argparse.Options{Help: "Open a telnet/tcp port to connect to shelly"})
+	silent := parser.Flag("s", "silent", &argparse.Options{Help: "Launch shelly silent"})
+	inception := parser.Flag("", "inception", &argparse.Options{Help: "Allow to run shelly inside of shelly"})
+
+	err := parser.Parse(os.Args)
+	if err != nil {
+		fmt.Print(parser.Usage(err))
+	}
+
+	if !*inception && os.Getenv(initialize.RunningEnv) != "" {
 		fmt.Println("You are trying to run shelly inside of shelly.")
-		fmt.Println("If you are sure this is what you want run shelly again with the -inception argument")
+		fmt.Println("If you are sure this is what you want run shelly again with the --inception argument")
 		os.Exit(1)
 	}
 

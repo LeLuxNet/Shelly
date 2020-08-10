@@ -1,11 +1,24 @@
+set GOARCH
+cd ..
+
+mkdir out
+cd out
+
 set GOOS windows
+mkdir windows
 echo Build windows
-go build -o ../out -ldflags "-s -w" ../...
+go build -o windows -ldflags "-s -w" ../...
 
 set GOOS linux
+mkdir linux
 echo Build linux
-go build -o ../out -ldflags "-s -w" ../...
+go build -o linux -ldflags "-s -w" ../...
 
-cd ../out
+set GOOS js
+set GOARCH wasm
+mkdir wasm
+echo Build wasm
+go build -o wasm ../...
+
 echo
 echo Finished!
