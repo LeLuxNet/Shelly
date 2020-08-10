@@ -36,23 +36,23 @@ func (Ls) Run(args []string, std sessions.Std, session *sessions.Session) error 
 		}
 		var result string
 		if path.ExpectDir(true) == nil {
-			result = output.GetColor(output.COLOR_BOLD, output.COLOR_F_BLUE)
+			result = output.GetColor(output.ColorBold, output.ColorFBlue)
 		} else if file.Mode() == os.ModeSymlink {
-			result = output.GetColor(output.COLOR_BOLD, output.COLOR_F_CYAN)
+			result = output.GetColor(output.ColorBold, output.ColorFCyan)
 		} else if file.Mode() == os.ModeDevice {
-			result = output.GetColor(output.COLOR_FB_YELLOW, output.COLOR_B_BLACK)
+			result = output.GetColor(output.ColorFBYellow, output.ColorBBlack)
 		} else if hasEnding(file.Name(), ImageEndings) {
-			result = output.GetColor(output.COLOR_BOLD, output.COLOR_F_MAGENTA)
+			result = output.GetColor(output.ColorBold, output.ColorFMagenta)
 		} else if hasEnding(file.Name(), ArchiveEndings) {
-			result = output.GetColor(output.COLOR_BOLD, output.COLOR_F_RED)
+			result = output.GetColor(output.ColorBold, output.ColorFRed)
 		} else if hasEnding(file.Name(), AudioEndings) {
-			result = output.GetColor(output.COLOR_F_CYAN)
+			result = output.GetColor(output.ColorFCyan)
 		} else if file.Mode()&0111 != 0 {
-			result = output.GetColor(output.COLOR_BOLD, output.COLOR_F_GREEN)
+			result = output.GetColor(output.ColorBold, output.ColorFGreen)
 		} else if hasEnding(file.Name(), ExecutableEndings) {
-			result = output.GetColor(output.COLOR_F_GREEN)
+			result = output.GetColor(output.ColorFGreen)
 		} else {
-			result = output.GetColor(output.COLOR_RESET)
+			result = output.GetColor(output.ColorReset)
 		}
 		output.SendNl(result+file.Name(), std.Out)
 	}

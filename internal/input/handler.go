@@ -42,9 +42,10 @@ func ReaderInput(session *sessions.Session) {
 	data := make([]byte, 1024)
 	_ = output.ClearScreen(session.Out)
 	if !sessions.Silent {
-		output.SendNl(output.Color("Shelly"+output.NEWLINE, output.COLOR_ITALIC, output.COLOR_F_CYAN), session.Out)
+		output.SendNl(output.Color("Shelly"+output.NEWLINE, output.ColorItalic, output.ColorFCyan), session.Out)
 	}
 	sendCmdPrefix(session)
+	var buffer []byte
 	for session.Open {
 		n, err := session.In.Read(data)
 		if err == io.EOF {
@@ -54,88 +55,85 @@ func ReaderInput(session *sessions.Session) {
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
 		}
-		raw := data[:n]
-		// fmt.Print(raw)
-		if len(raw) == 3 && raw[0] == 27 && raw[1] == 91 {
-			// Arrow-Keys
-			switch raw[2] {
-			case 65:
-				delLastChars(session.Out, len(session.GetHistoryEntry()))
-				session.HistoryPast()
-				output.Send(session.GetHistoryEntry(), session.Out)
-			case 66:
-				delLastChars(session.Out, len(session.GetHistoryEntry()))
-				session.HistoryPresent()
-				output.Send(session.GetHistoryEntry(), session.Out)
-			case 67:
-				if session.InputStringForward() {
-					output.SendRaw([]byte{27, 91, 67}, session.Out)
-				}
-			case 68:
-				if session.InputStringBack() {
-					output.SendRaw([]byte{27, 91, 68}, session.Out)
-				}
-			}
-		} else if len(raw) == 1 && (raw[0] == 8 || raw[0] == 127) {
-			// Backspace
-			if session.InputStringBack() {
-				entry := session.GetHistoryEntry()
-				end := entry[session.InputStringPos+1:]
-				session.SetHistoryEntry(entry[:session.InputStringPos] + end)
-				if raw[0] == 8 && !session.EchoInput {
-					output.SendRaw([]byte{32, 8}, session.Out)
-				} else {
-					delLastChars(session.Out, 1)
-				}
-				output.Send(end+" ", session.Out)
-				for i := 0; i <= len(end); i++ {
-					output.SendRaw([]byte{8}, session.Out)
-				}
-			} else if raw[0] == 8 {
-				output.SendRaw([]byte{32}, session.Out)
-			}
-		} else if len(raw) == 1 && raw[0] == 9 {
-			// Tab
-		} else if len(raw) == 1 && raw[0] == 3 {
-			// Ctrl+C
-		} else if len(raw) >= 1 && (raw[0] == 13 || raw[0] == 10) {
-			// Enter
-			if !containsByte(10, raw) {
-				output.SendRaw([]byte{10}, session.Out)
-			}
-			if strings.HasSuffix(session.GetHistoryEntry(), "\\") {
-				output.Send("> ", session.Out)
-			} else {
-				engine.MultiLineInput(session.GetHistoryEntry(),
-					sessions.Std{In: session.In, Out: session.Out, Err: session.Err}, session, true)
-				if session.Open {
-					session.HistoryPos = -1
-					session.InputBuffer = ""
-					session.InputStringPos = 0
-					sendCmdPrefix(session)
-				}
-			}
-		} else {
-			// Text input
-			if session.EchoInput {
-				output.SendRaw(raw, session.Out)
-			}
-			end := session.GetHistoryEntry()[session.InputStringPos:]
-			session.SetHistoryEntry(session.GetHistoryEntry()[:session.InputStringPos] + string(raw) + end)
-			output.Send(end, session.Out)
-			for i := 0; i < len(end); i++ {
-				output.SendRaw([]byte{8}, session.Out)
-			}
-			session.InputStringPos++
+		for i := 0; i < n; i++ {
+			buffer = handleByte(data[i], buffer, session)
 		}
 	}
 }
 
-func containsByte(searched byte, bytes []byte) bool {
-	for _, singleByte := range bytes {
-		if singleByte == searched {
-			return true
-		}
+func handleByte(data byte, buffer []byte, session *sessions.Session) []byte {
+	fmt.Print(data, ";")
+
+	if data == 27 || data == 91 {
+		return append(buffer, data)
 	}
-	return false
+
+	if len(buffer) == 2 && buffer[0] == 27 && buffer[1] == 91 {
+		// Arrow-Keys
+		switch data {
+		case 65:
+			delLastChars(session.Out, len(session.GetHistoryEntry()))
+			session.HistoryPast()
+			output.Send(session.GetHistoryEntry(), session.Out)
+		case 66:
+			delLastChars(session.Out, len(session.GetHistoryEntry()))
+			session.HistoryPresent()
+			output.Send(session.GetHistoryEntry(), session.Out)
+		case 67:
+			if session.InputStringForward() {
+				output.SendRaw([]byte{27, 91, 67}, session.Out)
+			}
+		case 68:
+			if session.InputStringBack() {
+				output.SendRaw([]byte{27, 91, 68}, session.Out)
+			}
+		}
+	} else if data == 8 || data == 127 {
+		if session.InputStringBack() {
+			entry := session.GetHistoryEntry()
+			end := entry[session.InputStringPos+1:]
+			session.SetHistoryEntry(entry[:session.InputStringPos] + end)
+			if data == 8 && !session.EchoInput {
+				output.SendRaw([]byte{32, 8}, session.Out)
+			} else {
+				delLastChars(session.Out, 1)
+			}
+			output.Send(end+" ", session.Out)
+			for i := 0; i <= len(end); i++ {
+				output.SendRaw([]byte{8}, session.Out)
+			}
+		} else if data == 8 {
+			output.SendRaw([]byte{32}, session.Out)
+		}
+	} else if data == 13 || data == 10 {
+		if data != 10 {
+			output.SendRaw([]byte{10}, session.Out)
+		}
+
+		if strings.HasSuffix(session.GetHistoryEntry(), "\\") {
+			output.Send("> ", session.Out)
+		} else {
+			engine.MultiLineInput(session.GetHistoryEntry(),
+				sessions.Std{In: session.In, Out: session.Out, Err: session.Err}, session, true)
+			if session.Open {
+				session.HistoryPos = -1
+				session.InputBuffer = ""
+				session.InputStringPos = 0
+				sendCmdPrefix(session)
+			}
+		}
+	} else {
+		if session.EchoInput {
+			output.SendRaw([]byte{data}, session.Out)
+		}
+		end := session.GetHistoryEntry()[session.InputStringPos:]
+		session.SetHistoryEntry(session.GetHistoryEntry()[:session.InputStringPos] + string(data) + end)
+		output.Send(end, session.Out)
+		for i := 0; i < len(end); i++ {
+			output.SendRaw([]byte{8}, session.Out)
+		}
+		session.InputStringPos++
+	}
+
+	return []byte{}
 }

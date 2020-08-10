@@ -6,10 +6,10 @@ import (
 )
 
 func TestColors(t *testing.T) {
-	if output.GetColor(output.COLOR_F_BLACK, output.COLOR_BB_WHITE) != "\u001b[30;107m" {
+	if output.GetColor(output.ColorFBlack, output.ColorBBWhite) != "\u001b[30;107m" {
 		t.Errorf("Color code for black foreground and bright white background is wrong")
 	}
-	if output.Color("ColorTest", output.COLOR_F_BLUE) != "\u001b[34mColorTest\u001b[0m" {
+	if output.Color("ColorTest", output.ColorFBlue) != "\u001b[34mColorTest\u001b[0m" {
 		t.Errorf("Text color is wrong or reset is missing")
 	}
 }

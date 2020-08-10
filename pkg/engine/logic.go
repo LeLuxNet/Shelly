@@ -49,7 +49,7 @@ func singleCommandInput(cmd string, std sessions.Std, session *sessions.Session)
 	err := exe.Run(args, std, session)
 	if err != nil {
 		// TODO: Add error code
-		output.SendNl(output.Color(err.Error(), output.COLOR_F_RED), std.Err)
+		output.SendNl(output.Color(err.Error(), output.ColorFRed), std.Err)
 		return 1
 	}
 	return 0

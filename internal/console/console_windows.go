@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func Local() {
+func Local(stdin, stdout, stderr *os.File) {
 	in, out, inErr, outErr := syscalls.GetConsoleStd()
 	if inErr == nil && outErr == nil {
 		defer syscalls.SetConsoleStd(in, out)
@@ -20,5 +20,5 @@ func Local() {
 		echo = false
 	}
 
-	input.ReaderInput(sessions.NewSession(os.Stdin, os.Stdout, os.Stderr, echo, sessions.Local))
+	input.ReaderInput(sessions.NewSession(stdin, stdout, stderr, echo, sessions.Local))
 }
